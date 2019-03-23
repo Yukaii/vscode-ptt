@@ -10,7 +10,7 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:ptt.login"
+    "onCommand:ptt.login"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
@@ -18,8 +18,37 @@
 			{
 				"command": "ptt.login",
 				"title": "PTT: 登入"
-			}
-		]
+      },
+      {
+        "command": "ptt.set-board",
+        "title": "進入看板"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "ptt.set-board",
+          "when": "view == articleList"
+        }
+      ]
+    },
+    "views": {
+      "ptt-explorer": [
+        {
+          "id": "articleList",
+          "name": "文章列表"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "ptt-explorer",
+          "title": "PTT Explorer",
+          "icon": "media/dep.svg"
+        }
+      ]
+    }
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
