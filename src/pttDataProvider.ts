@@ -21,10 +21,11 @@ export class PttTreeDataProvider implements vscode.TreeDataProvider<Board> {
     }
 
     if (element) {
-      // children
+      // expand board node
       const articleNodes = await this.createArticleList(element.boardname);
       return articleNodes;
     } else {
+      // list board nodes
       const boardlist: string[] = this.ctx.globalState.get('boardlist');
       if (boardlist) {
         return boardlist.map(board => new Board(board, vscode.TreeItemCollapsibleState.Collapsed));

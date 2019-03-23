@@ -19,7 +19,8 @@
 		"commands": [
 			{
 				"command": "ptt.login",
-				"title": "PTT: 登入"
+        "title": "登入",
+        "category": "PTT"
       },
       {
         "command": "ptt.add-board",
@@ -56,7 +57,7 @@
       "activitybar": [
         {
           "id": "ptt-explorer",
-          "title": "PTT Explorer",
+          "title": "VSCode PTT",
           "icon": "media/dep.svg"
         }
       ]
