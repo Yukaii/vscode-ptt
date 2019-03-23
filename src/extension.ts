@@ -1,10 +1,9 @@
 import * as vscode from 'vscode';
-(global as any).WebSocket = require('ws');
-import initProxy from './proxy';
 import PTT from 'ptt-client';
 
-import * as path from 'path';
-require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
+(global as any).WebSocket = require('ws');
+
+import initProxy from './proxy';
 
 let proxyServer;
 let proxyAddress;
