@@ -9,6 +9,7 @@ import { ArticleProvider } from './articleProvider';
 let proxyServer;
 let proxyAddress;
 let ptt;
+let ctx: vscode.ExtensionContext;
 
 async function intializeProxy () {
   const { server, address } = await initProxy();
@@ -28,25 +29,39 @@ function checkLogin () {
   return login;
 }
 
+async function getLoginCredential () {
+  let username = ctx.globalState.get('username');
+  let password = ctx.globalState.get('password');
+
+  if (username && password) {
+    return { username, password };
+  }
+
+  username = await vscode.window.showInputBox({
+    placeHolder: '帳號'
+  });
+
+  password = await vscode.window.showInputBox({
+    placeHolder: '密碼',
+    password: true
+  });
+
+  return { username, password };
+}
+
 async function login () {
   if (checkLogin()) {
     return;
   }
 
-  const username = await vscode.window.showInputBox({
-    placeHolder: '帳號'
-  });
-
-  const password = await vscode.window.showInputBox({
-    placeHolder: '密碼',
-    password: true
-  });
+  const { username, password } = await getLoginCredential();
 
   await ptt.login(username, password);
   var { login } = ptt.state;
   if (login) {
-    // TODO: Save credentials
-    vscode.window.showInformationMessage('登入成功！');
+    ctx.globalState.update('username', username);
+    ctx.globalState.update('password', password);
+    vscode.window.showInformationMessage(`以 ${username} 登入成功！`);
   } else {
     vscode.window.showWarningMessage('登入失敗 QQ');
   }
@@ -68,6 +83,8 @@ async function pickFavorite (): Promise<string> {
 }
 
 export async function activate(context: vscode.ExtensionContext) {
+  ctx = context;
+
   if (!proxyServer) {
     await intializeProxy();
   }
