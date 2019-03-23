@@ -10,7 +10,9 @@
 		"Other"
 	],
 	"activationEvents": [
-    "onCommand:ptt.login"
+    "onCommand:ptt.login",
+    "onCommand:ptt.add-board",
+    "onView:pttTree"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
@@ -20,22 +22,32 @@
 				"title": "PTT: 登入"
       },
       {
-        "command": "ptt.set-board",
-        "title": "進入看板"
+        "command": "ptt.add-board",
+        "title": "新增訂閱看板"
+      },
+      {
+        "command": "ptt.remove-board",
+        "title": "移除訂閱看板"
       }
     ],
     "menus": {
       "view/title": [
         {
-          "command": "ptt.set-board",
-          "when": "view == articleList"
+          "command": "ptt.add-board",
+          "when": "view == pttTree"
+        }
+      ],
+			"view/item/context": [
+				{
+					"command": "ptt.remove-board",
+					"when": "view == pttTree && viewItem == board"
         }
       ]
     },
     "views": {
       "ptt-explorer": [
         {
-          "id": "articleList",
+          "id": "pttTree",
           "name": "文章列表"
         }
       ]
