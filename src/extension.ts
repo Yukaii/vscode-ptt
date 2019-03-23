@@ -35,21 +35,25 @@ export async function activate(context: vscode.ExtensionContext) {
     ptt = await intializePttClient(proxyAddress);
   }
 
-	let disposable = vscode.commands.registerCommand('extension.helloWorld', async () => {
+	context.subscriptions.push(vscode.commands.registerCommand('ptt.login', async () => {
+    const username = await vscode.window.showInputBox({
+      placeHolder: '帳號'
+    });
+
+    const password = await vscode.window.showInputBox({
+      placeHolder: '密碼',
+      password: true
+    });
+
+    await ptt.login(username, password);
     const { login } = ptt.state;
-
-    if (!login) {
-      await ptt.login(process.env.USERNAME, process.env.PASSWORD)
+    if (login) {
+      // TODO: Save credentials
+      vscode.window.showInformationMessage('登入成功！');
+    } else {
+      vscode.window.showWarningMessage('登入失敗 QQ');
     }
-
-    let articles = await ptt.getArticles('C_Chat');
-    console.log(articles);
-
-		// Display a message box to the user
-		// vscode.window.showInformationMessage('Hello World!');
-	});
-
-	context.subscriptions.push(disposable);
+	}));
 }
 
 // this method is called when your extension is deactivated
