@@ -29,6 +29,7 @@
 		"test": "npm run compile && node ./node_modules/vscode/bin/test"
 	},
 	"devDependencies": {
+		"@types/http-proxy": "^1.17.0",
 		"@types/mocha": "^2.2.42",
 		"@types/node": "^10.12.21",
 		"dotenv": "^7.0.0",
@@ -37,6 +38,7 @@
 		"vscode": "^1.1.28"
 	},
 	"dependencies": {
+		"find-free-port": "^2.0.0",
 		"http-proxy": "^1.17.0",
 		"ptt-client": "^0.4.0",
 		"ws": "^6.2.0"
