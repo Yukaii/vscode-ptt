@@ -1,65 +1,31 @@
-# vscode-ptt README
+# vscode-ptt
 
-This is the README for your extension "vscode-ptt". After writing up a brief description, we recommend including the following sections.
+![home](docs/images/screenshot.png)
+
+在 VSCode 也要上 PTT！
+
+你以為我在寫扣嗎？甘いよ、お前！我其實在上批踢踢啊！！
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+### 新增訂閱看板
 
-For example if there is an image subfolder under your extension project workspace:
+![Add Remove board](docs/images/vscode-ptt-add-remove-board.gif)
 
-\!\[feature X\]\(images/feature-x.png\)
+### 瀏覽文章 (目前只有唯讀模式)
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
-
-## Requirements
-
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
-
-## Extension Settings
-
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
-This extension contributes the following settings:
-
-* `myExtension.enable`: enable/disable this extension
-* `myExtension.thing`: set to `blah` to do something
-
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
+![Open article](docs/images/vscode-ptt-open-article.gif)
 
 ## Release Notes
 
-Users appreciate release notes as you update your extension.
+### 0.0.1
 
-### 1.0.0
+首次發佈。功能詳見 [MVP Task List](https://github.com/Yukaii/vscode-ptt/issues/2)
 
-Initial release of ...
+### Credits
 
-### 1.0.1
+- 特別感謝 [@kevinptt0323](https://github.com/kevinptt0323) 維護的 [ptt-client](https://github.com/kevinptt0323/ptt-client)，少走了很多路，能夠專注於 VSCode 的 API 串接 ❤️
 
-Fixed issue #.
+### LICENSE
 
-### 1.1.0
-
-Added features X, Y, and Z.
-
------------------------------------------------------------------------------------------------------------
-
-## Working with Markdown
-
-**Note:** You can author your README using Visual Studio Code.  Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux)
-* Toggle preview (`Shift+CMD+V` on macOS or `Shift+Ctrl+V` on Windows and Linux)
-* Press `Ctrl+Space` (Windows, Linux) or `Cmd+Space` (macOS) to see a list of Markdown snippets
-
-### For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+WTFPL

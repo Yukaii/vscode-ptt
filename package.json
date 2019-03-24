@@ -13,7 +13,11 @@
     "onCommand:ptt.login",
     "onCommand:ptt.add-board",
     "onView:pttTree"
-	],
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Yukaii/vscode-ptt"
+  },
 	"main": "./out/extension.js",
 	"contributes": {
 		"commands": [
