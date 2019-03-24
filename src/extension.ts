@@ -6,6 +6,7 @@ import key from 'ptt-client/dist/utils/keyboard';
 
 import initProxy from './proxy';
 import { PttTreeDataProvider, Board } from './pttDataProvider';
+import ContentProvider from './provider';
 
 let proxyServer;
 let proxyAddress;
@@ -111,6 +112,9 @@ export async function activate(context: vscode.ExtensionContext) {
   pttProvider = new PttTreeDataProvider(ptt, ctx);
   vscode.window.registerTreeDataProvider('pttTree', pttProvider);
 
+  const provider = new ContentProvider(ptt);
+  context.subscriptions.push(vscode.workspace.registerTextDocumentContentProvider(ContentProvider.scheme, provider));
+
   context.subscriptions.push(vscode.commands.registerCommand('ptt.login', login));
   context.subscriptions.push(vscode.commands.registerCommand('ptt.logout', async () => {
     if (!checkLogin()) {
@@ -150,8 +154,9 @@ export async function activate(context: vscode.ExtensionContext) {
     pttProvider.refresh();
   }));
 
-  context.subscriptions.push(vscode.commands.registerCommand('ptt.show-article', (sn, boardname) => {
-    vscode.window.showInformationMessage(`ID: ${sn}, board: ${boardname}`);
+  context.subscriptions.push(vscode.commands.registerCommand('ptt.show-article', async (sn, boardname) => {
+    const doc = await vscode.workspace.openTextDocument(vscode.Uri.parse(`${ContentProvider.scheme}:${boardname}/${sn}`));
+    await vscode.window.showTextDocument(doc, vscode.ViewColumn.Active);
   }));
 
   context.subscriptions.push(vscode.commands.registerCommand('ptt.remove-board', (board: Board) => {
