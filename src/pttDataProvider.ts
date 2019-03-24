@@ -38,7 +38,7 @@ export class PttTreeDataProvider implements vscode.TreeDataProvider<Board> {
   private async createArticleList (boardname) {
     const articles = await this.ptt.getArticles(boardname);
     return articles.map(article => new Article(
-      article.title,
+      `${article.status} ${article.title}`,
       vscode.TreeItemCollapsibleState.None,
       {
         command: 'ptt.show-article',
