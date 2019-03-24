@@ -9,7 +9,7 @@ export class PttTreeDataProvider implements vscode.TreeDataProvider<Board> {
 
   refresh(): void {
 		this._onDidChangeTreeData.fire();
-	}
+  }
 
   getTreeItem (element: Board): vscode.TreeItem {
 		return element;
@@ -26,9 +26,9 @@ export class PttTreeDataProvider implements vscode.TreeDataProvider<Board> {
       return articleNodes;
     } else {
       // list board nodes
-      const boardlist: string[] = this.ctx.globalState.get('boardlist');
-      if (boardlist) {
-        return boardlist.map(board => new Board(board, vscode.TreeItemCollapsibleState.Collapsed));
+      const boardlist: string[] = this.ctx.globalState.get('boardlist') || [];
+      if (boardlist.length > 0) {
+        return boardlist.sort().map(board => new Board(board, vscode.TreeItemCollapsibleState.Collapsed));
       } else {
         return [];
       }

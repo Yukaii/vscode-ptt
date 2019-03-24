@@ -34,7 +34,15 @@
       {
         "command": "ptt.remove-board",
         "title": "移除訂閱看板"
-      }
+      },
+			{
+				"command": "ptt.refresh-article",
+				"title": "重新整理文章列表",
+				"icon": {
+					"light": "resources/light/refresh.svg",
+					"dark": "resources/dark/refresh.svg"
+				}
+			}
     ],
     "menus": {
       "view/title": [
@@ -45,7 +53,12 @@
         {
           "command": "ptt.logout",
           "when": "view == pttTree"
-        }
+        },
+				{
+					"command": "ptt.refresh-article",
+          "when": "view == pttTree",
+          "group": "navigation"
+				}
       ],
 			"view/item/context": [
 				{

@@ -166,6 +166,10 @@ export async function activate(context: vscode.ExtensionContext) {
     pttProvider.refresh();
   }));
 
+  context.subscriptions.push(vscode.commands.registerCommand('ptt.refresh-article', () => {
+    pttProvider.refresh();
+  }));
+
   await login(true);
 }
 
