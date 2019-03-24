@@ -59,11 +59,6 @@ export class Board extends vscode.TreeItem {
   }
 
   contextValue = 'board';
-
-  // iconPath = {
-	// 	light: path.join(__filename, '..', '..', 'resources', 'light', 'dependency.svg'),
-	// 	dark: path.join(__filename, '..', '..', 'resources', 'dark', 'dependency.svg')
-	// };
 }
 
 export class Article extends vscode.TreeItem {
@@ -73,10 +68,7 @@ export class Article extends vscode.TreeItem {
 		public readonly command?: vscode.Command
 	) {
 		super(title, collapsibleState);
-	}
+  }
 
-	iconPath = {
-		light: path.join(__filename, '..', '..', 'resources', 'light', 'dependency.svg'),
-		dark: path.join(__filename, '..', '..', 'resources', 'dark', 'dependency.svg')
-	};
+  contextValue = 'article';
 }
