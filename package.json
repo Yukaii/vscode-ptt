@@ -22,6 +22,11 @@
         "title": "登入",
         "category": "PTT"
       },
+			{
+				"command": "ptt.logout",
+        "title": "登出",
+        "category": "PTT"
+      },
       {
         "command": "ptt.add-board",
         "title": "新增訂閱看板"
@@ -35,6 +40,10 @@
       "view/title": [
         {
           "command": "ptt.add-board",
+          "when": "view == pttTree"
+        },
+        {
+          "command": "ptt.logout",
           "when": "view == pttTree"
         }
       ],

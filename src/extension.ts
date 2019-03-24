@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import PTT from 'ptt-client';
+import key from 'ptt-client/dist/utils/keyboard';
 
 (global as any).WebSocket = require('ws');
 
@@ -39,7 +40,8 @@ async function getLoginCredential () {
   }
 
   username = await vscode.window.showInputBox({
-    placeHolder: '帳號'
+    placeHolder: '帳號',
+    prompt: '請輸入 PTT 登入帳號'
   });
 
   password = await vscode.window.showInputBox({
@@ -56,6 +58,11 @@ async function login () {
   }
 
   const { username, password } = await getLoginCredential();
+
+  if (!username || !password) {
+    vscode.window.showWarningMessage('帳號或密碼不得為空 QQ');
+    return;
+  }
 
   await ptt.login(username, password);
   var { login } = ptt.state;
@@ -98,9 +105,33 @@ export async function activate(context: vscode.ExtensionContext) {
   pttProvider = new PttTreeDataProvider(ptt, ctx);
   vscode.window.registerTreeDataProvider('pttTree', pttProvider);
 
-	context.subscriptions.push(vscode.commands.registerCommand('ptt.login', login));
+  context.subscriptions.push(vscode.commands.registerCommand('ptt.login', login));
+  context.subscriptions.push(vscode.commands.registerCommand('ptt.logout', async () => {
+    if (!checkLogin()) {
+      return;
+    }
+
+    const res = await vscode.window.showInformationMessage('你確定要登出嗎？登出會一併清除您的訂閱看板', '好', '算了');
+    if (res === '好') {
+      ctx.globalState.update('username', null);
+      ctx.globalState.update('password', null);
+      ctx.globalState.update('boardlist', []);
+      pttProvider.refresh();
+
+      // logout
+      await ptt.send(`${key.ArrowLeft.repeat(10)}${key.ArrowRight}y${key.Enter}`);
+      // !FIXME: should be fixed in upstream  ptt-client library
+      ptt._state.login = false;
+
+      vscode.window.showInformationMessage('已登出 PTT');
+    }
+  }));
 	context.subscriptions.push(vscode.commands.registerCommand('ptt.add-board', async function () {
     await login();
+
+    if (!checkLogin()) {
+      return;
+    }
 
     const boardName = await vscode.window.showInputBox({
       prompt: '輸入看板名稱',
@@ -124,7 +155,7 @@ export async function activate(context: vscode.ExtensionContext) {
     pttProvider.refresh();
   }));
 
-  // TODO: make this silent
+  // TODO: make this silent without prompt
   await login();
 }
 
