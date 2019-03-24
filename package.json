@@ -1,7 +1,7 @@
 {
 	"name": "vscode-ptt",
 	"displayName": "vscode-ptt",
-	"description": "PTT",
+	"description": "PTT Client for VSCode",
 	"version": "0.0.1",
 	"engines": {
 		"vscode": "^1.32.0"

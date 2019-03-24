@@ -1,9 +1,5 @@
 # Change Log
 
-All notable changes to the "vscode-ptt" extension will be documented in this file.
+## 0.0.1
 
-Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
-
-## [Unreleased]
-
-- Initial release
+首次發佈。功能詳見 [MVP Task List](https://github.com/Yukaii/vscode-ptt/issues/2)
