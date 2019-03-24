@@ -31,11 +31,11 @@ function checkLogin () {
   return login;
 }
 
-async function getLoginCredential () {
+async function getLoginCredential (silent = false) {
   let username = ctx.globalState.get('username');
   let password = ctx.globalState.get('password');
 
-  if (username && password) {
+  if ((username && password) || silent) {
     return { username, password };
   }
 
@@ -52,15 +52,17 @@ async function getLoginCredential () {
   return { username, password };
 }
 
-async function login () {
+async function login (silent = false) {
   if (checkLogin()) {
     return;
   }
 
-  const { username, password } = await getLoginCredential();
+  const { username, password } = await getLoginCredential(silent);
 
   if (!username || !password) {
-    vscode.window.showWarningMessage('帳號或密碼不得為空 QQ');
+    if (!silent) {
+      vscode.window.showWarningMessage('帳號或密碼不得為空 QQ');
+    }
     return;
   }
 
@@ -70,9 +72,13 @@ async function login () {
     ctx.globalState.update('username', username);
     ctx.globalState.update('password', password);
     pttProvider.refresh();
-    vscode.window.showInformationMessage(`以 ${username} 登入成功！`);
+    if (!silent) {
+      vscode.window.showInformationMessage(`以 ${username} 登入成功！`);
+    }
   } else {
-    vscode.window.showWarningMessage('登入失敗 QQ');
+    if (!silent) {
+      vscode.window.showWarningMessage('登入失敗 QQ');
+    }
   }
 }
 
@@ -155,8 +161,7 @@ export async function activate(context: vscode.ExtensionContext) {
     pttProvider.refresh();
   }));
 
-  // TODO: make this silent without prompt
-  await login();
+  await login(true);
 }
 
 // this method is called when your extension is deactivated
