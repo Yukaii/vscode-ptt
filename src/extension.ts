@@ -46,11 +46,12 @@ async function getLoginCredential (silent = false) {
   });
 
   if (!username) {
-    return;
+    return {};
   }
 
   password = await vscode.window.showInputBox({
     placeHolder: '密碼',
+    prompt: '請輸入 PTT 登入密碼',
     password: true
   });
 
