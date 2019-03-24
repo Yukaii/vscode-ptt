@@ -1,14 +1,21 @@
 {
 	"name": "vscode-ptt",
-	"displayName": "vscode-ptt",
+	"displayName": "VSCode 批踢踢 (VSCode PTT)",
 	"description": "PTT Client for VSCode",
 	"version": "0.0.1",
 	"engines": {
 		"vscode": "^1.32.0"
-	},
+  },
+  "preview": true,
 	"categories": [
 		"Other"
-	],
+  ],
+  "author": {
+    "email": "nyan@yukaii.tw",
+    "name": "Yukai Huang",
+    "url": "https://yukai.dev"
+  },
+  "license": "WTFPL",
 	"activationEvents": [
     "onCommand:ptt.login",
     "onCommand:ptt.add-board",
