@@ -45,6 +45,10 @@ async function getLoginCredential (silent = false) {
     prompt: '請輸入 PTT 登入帳號'
   });
 
+  if (!username) {
+    return;
+  }
+
   password = await vscode.window.showInputBox({
     placeHolder: '密碼',
     password: true
@@ -62,7 +66,7 @@ async function login (silent = false) {
 
   if (!username || !password) {
     if (!silent) {
-      vscode.window.showWarningMessage('帳號或密碼不得為空 QQ');
+      vscode.window.showWarningMessage('需要帳密才能使用 VSCode PTT 噢！');
     }
     return;
   }
