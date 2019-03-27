@@ -7,6 +7,7 @@ import key from 'ptt-client/dist/utils/keyboard';
 import initProxy from './proxy';
 import { PttTreeDataProvider, Board } from './pttDataProvider';
 import ContentProvider from './provider';
+import store from './store';
 
 let proxyServer;
 let proxyAddress;
@@ -172,6 +173,13 @@ export async function activate(context: vscode.ExtensionContext) {
   }));
 
   context.subscriptions.push(vscode.commands.registerCommand('ptt.refresh-article', () => {
+    pttProvider.refresh();
+  }));
+
+  context.subscriptions.push(vscode.commands.registerCommand('ptt.load-more-article', async (boardname: string) => {
+    const lastSn = store.lastSn(boardname);
+    const articles = await ptt.getArticles(boardname, lastSn - 1);
+    store.add(boardname, articles);
     pttProvider.refresh();
   }));
 
