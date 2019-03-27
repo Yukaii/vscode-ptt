@@ -1,7 +1,10 @@
 import * as vscode from 'vscode';
-import * as path from 'path';
 
-export class PttTreeDataProvider implements vscode.TreeDataProvider<Board> {
+import store from './store';
+
+type Node = Board | Article | LoadMoreArticle;
+
+export class PttTreeDataProvider implements vscode.TreeDataProvider<Node> {
   constructor (private ptt, private ctx: vscode.ExtensionContext) {}
 
 	private _onDidChangeTreeData: vscode.EventEmitter<Board | undefined> = new vscode.EventEmitter<Board | undefined>();
@@ -15,14 +18,14 @@ export class PttTreeDataProvider implements vscode.TreeDataProvider<Board> {
 		return element;
 	}
 
-	async getChildren (element?: Board): Promise<Board[]> {
+	async getChildren (element?: Node): Promise<Node[]> {
     if (!this.ptt.state.login) {
       return [];
     }
 
     if (element) {
       // expand board node
-      const articleNodes = await this.createArticleList(element.boardname);
+      const articleNodes = await this.createArticleList((element as Board).boardname);
       return articleNodes;
     } else {
       // list board nodes
@@ -35,17 +38,25 @@ export class PttTreeDataProvider implements vscode.TreeDataProvider<Board> {
     }
   }
 
-  private async createArticleList (boardname) {
-    const articles = await this.ptt.getArticles(boardname);
-    return articles.map(article => new Article(
-      `${article.status} ${article.title}`,
-      vscode.TreeItemCollapsibleState.None,
-      {
-        command: 'ptt.show-article',
-        title: '',
-        arguments: [article.sn, boardname]
-      }
-    ));
+  private async createArticleList (boardname: string) {
+    let articles = store.asList(boardname);
+    if (articles.length === 0) {
+      articles = await this.ptt.getArticles(boardname);
+      store.add(boardname, articles);
+    }
+
+    return [
+      ...store.asList(boardname).map(article => new Article(
+        `${article.status} ${article.title}`,
+        vscode.TreeItemCollapsibleState.None,
+        {
+          command: 'ptt.show-article',
+          title: '',
+          arguments: [article.sn, boardname]
+        }
+      )),
+      new LoadMoreArticle(boardname)
+    ];
   }
 }
 
@@ -71,4 +82,16 @@ export class Article extends vscode.TreeItem {
   }
 
   contextValue = 'article';
+}
+
+class LoadMoreArticle extends vscode.TreeItem {
+  constructor (boardname: string) {
+    super('載入更多文章', vscode.TreeItemCollapsibleState.None);
+
+    this.command = {
+      command: 'ptt.load-more-article',
+      title: '',
+      arguments: [boardname]
+    };
+  }
 }
