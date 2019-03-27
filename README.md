@@ -22,10 +22,10 @@
 
 首次發佈。功能詳見 [MVP Task List](https://github.com/Yukaii/vscode-ptt/issues/2)
 
-### Credits
+## Credits
 
 - 特別感謝 [@kevinptt0323](https://github.com/kevinptt0323) 維護的 [ptt-client](https://github.com/kevinptt0323/ptt-client)，少走了很多路，能夠專注於 VSCode 的 API 串接 ❤️
 
-### LICENSE
+## LICENSE
 
 WTFPL
