@@ -18,9 +18,7 @@
 
 ## Release Notes
 
-### 0.0.1
-
-首次發佈。功能詳見 [MVP Task List](https://github.com/Yukaii/vscode-ptt/issues/2)
+詳見 [Changelog](https://github.com/Yukaii/vscode-ptt/blob/master/CHANGELOG.md)
 
 ## Credits
 
