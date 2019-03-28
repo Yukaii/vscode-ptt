@@ -25,7 +25,6 @@ class ArticleStore {
       });
   }
 
-  // TODO: typed articles
   add (boardname: string, articles: Array<ArticleListItem>) {
     articles.forEach(article => {
       this.articleStore[boardname] = this.articleStore[boardname] || {};
