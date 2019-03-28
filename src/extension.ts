@@ -191,11 +191,9 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand('ptt.favorite-board', async () => {
       
-      let boards: string[];
       const boardlist: string[] = ctx.globalState.get('boardlist') || [];
-      await pickFavorite().then(function(boardName){
-        boards = [...new Set(boardlist.concat(boardName))];
-      });
+      const boardName = await pickFavorite();
+      const boards = [...new Set(boardlist.concat(boardName))];
       ctx.globalState.update('boardlist', boards.filter(Boolean)); //check if board exist?
       pttProvider.refresh();
     })
