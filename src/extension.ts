@@ -101,7 +101,12 @@ async function pickFavorite (): Promise<string> {
   });
 
   const board = await vscode.window.showQuickPick(favoriteItems);
-  return board.label;
+  if (board){
+    return board.label;
+  }
+  else{
+    return null;
+  }
 }
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -182,6 +187,17 @@ export async function activate(context: vscode.ExtensionContext) {
     store.add(boardname, articles);
     pttProvider.refresh();
   }));
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand('ptt.favorite-board', async () => {
+      
+      const boardlist: string[] = ctx.globalState.get('boardlist') || [];
+      const boardName = await pickFavorite();
+      const boards = [...new Set(boardlist.concat(boardName))];
+      ctx.globalState.update('boardlist', boards.filter(Boolean)); //check if board exist?
+      pttProvider.refresh();
+    })
+  );
 
   await login(true);
 }

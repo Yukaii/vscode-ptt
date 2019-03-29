@@ -20,6 +20,7 @@
 	"activationEvents": [
     "onCommand:ptt.login",
     "onCommand:ptt.add-board",
+    "onCommand:ptt.favorite-board",
     "onView:pttTree"
   ],
   "repository": {
@@ -54,6 +55,10 @@
 					"light": "resources/light/refresh.svg",
 					"dark": "resources/dark/refresh.svg"
 				}
+      },
+      {
+        "command": "ptt.favorite-board",
+        "title": "從我的最愛新增訂閱"
 			}
     ],
     "menus": {
@@ -67,6 +72,10 @@
           "when": "view == pttTree"
         },
 				{
+          "command": "ptt.favorite-board",
+          "when": "view == pttTree"
+        },
+        {
 					"command": "ptt.refresh-article",
           "when": "view == pttTree",
           "group": "navigation"
