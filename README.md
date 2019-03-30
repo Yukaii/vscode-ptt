@@ -1,5 +1,10 @@
 # vscode-ptt
 
+![](https://badgen.net/vs-marketplace/v/Yukai.vscode-ptt)
+![](https://badgen.net/vs-marketplace/i/Yukai.vscode-ptt)
+![](https://badgen.net/vs-marketplace/d/Yukai.vscode-ptt)
+![](https://badgen.net/vs-marketplace/rating/Yukai.vscode-ptt)
+
 ![home](docs/images/screenshot.png)
 
 在 VSCode 也要上 PTT！
