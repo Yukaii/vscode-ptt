@@ -1,14 +1,14 @@
 {
-	"name": "vscode-ptt",
-	"displayName": "VSCode 批踢踢 (VSCode PTT)",
-	"description": "PTT Client for VSCode",
-	"version": "0.1.0",
-	"engines": {
-		"vscode": "^1.32.0"
+  "name": "vscode-ptt",
+  "displayName": "VSCode 批踢踢 (VSCode PTT)",
+  "description": "PTT Client for VSCode",
+  "version": "0.1.0",
+  "engines": {
+    "vscode": "^1.32.0"
   },
   "preview": true,
-	"categories": [
-		"Other"
+  "categories": [
+    "Other"
   ],
   "publisher": "Yukai",
   "author": {
@@ -17,7 +17,7 @@
     "url": "https://yukai.dev"
   },
   "license": "WTFPL",
-	"activationEvents": [
+  "activationEvents": [
     "onCommand:ptt.login",
     "onCommand:ptt.add-board",
     "onCommand:ptt.favorite-board",
@@ -27,16 +27,16 @@
     "type": "git",
     "url": "https://github.com/Yukaii/vscode-ptt"
   },
-	"main": "./out/extension.js",
-	"contributes": {
-		"commands": [
-			{
-				"command": "ptt.login",
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "ptt.login",
         "title": "登入",
         "category": "PTT"
       },
-			{
-				"command": "ptt.logout",
+      {
+        "command": "ptt.logout",
         "title": "登出",
         "category": "PTT"
       },
@@ -48,18 +48,18 @@
         "command": "ptt.remove-board",
         "title": "移除訂閱看板"
       },
-			{
-				"command": "ptt.refresh-article",
-				"title": "重新整理文章列表",
-				"icon": {
-					"light": "resources/light/refresh.svg",
-					"dark": "resources/dark/refresh.svg"
-				}
+      {
+        "command": "ptt.refresh-article",
+        "title": "重新整理文章列表",
+        "icon": {
+          "light": "resources/light/refresh.svg",
+          "dark": "resources/dark/refresh.svg"
+        }
       },
       {
         "command": "ptt.favorite-board",
         "title": "從我的最愛新增訂閱"
-			}
+      }
     ],
     "menus": {
       "view/title": [
@@ -71,20 +71,20 @@
           "command": "ptt.logout",
           "when": "view == pttTree"
         },
-				{
+        {
           "command": "ptt.favorite-board",
           "when": "view == pttTree"
         },
         {
-					"command": "ptt.refresh-article",
+          "command": "ptt.refresh-article",
           "when": "view == pttTree",
           "group": "navigation"
-				}
+        }
       ],
-			"view/item/context": [
-				{
-					"command": "ptt.remove-board",
-					"when": "view == pttTree && viewItem == board"
+      "view/item/context": [
+        {
+          "command": "ptt.remove-board",
+          "when": "view == pttTree && viewItem == board"
         }
       ]
     },
@@ -105,27 +105,27 @@
         }
       ]
     }
-	},
-	"scripts": {
-		"vscode:prepublish": "npm run compile",
-		"compile": "tsc -p ./",
-		"watch": "tsc -watch -p ./",
-		"postinstall": "node ./node_modules/vscode/bin/install",
-		"test": "npm run compile && node ./node_modules/vscode/bin/test"
-	},
-	"devDependencies": {
-		"@types/http-proxy": "^1.17.0",
-		"@types/mocha": "^2.2.42",
-		"@types/node": "^10.12.21",
-		"dotenv": "^7.0.0",
-		"tslint": "^5.12.1",
-		"typescript": "^3.3.1",
-		"vscode": "^1.1.28"
-	},
-	"dependencies": {
-		"find-free-port": "^2.0.0",
-		"http-proxy": "^1.17.0",
-		"ptt-client": "^0.4.0",
-		"ws": "^6.2.0"
-	}
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "postinstall": "node ./node_modules/vscode/bin/install",
+    "test": "npm run compile && node ./node_modules/vscode/bin/test"
+  },
+  "devDependencies": {
+    "@types/http-proxy": "^1.17.0",
+    "@types/mocha": "^2.2.42",
+    "@types/node": "^10.14.4",
+    "dotenv": "^7.0.0",
+    "tslint": "^5.15.0",
+    "typescript": "^3.4.1",
+    "vscode": "^1.1.33"
+  },
+  "dependencies": {
+    "find-free-port": "^2.0.0",
+    "http-proxy": "^1.17.0",
+    "ptt-client": "^0.5.2",
+    "ws": "^6.2.1"
+  }
 }
