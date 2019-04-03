@@ -73,7 +73,7 @@ async function login (silent = false) {
     return;
   }
 
-  await ptt.login(username, password);
+  await ptt.login(username, password, vscode.workspace.getConfiguration().get('kickLogin'));
   var { login } = ptt.state;
   if (login) {
     ctx.globalState.update('username', username);
@@ -93,6 +93,7 @@ async function pickFavorite (): Promise<string> {
   await login();
 
   const favorites = await ptt.getFavorite();
+  // TODO: exclude subscribed boards
   const favoriteItems: vscode.QuickPickItem[] = favorites.filter(f => !f.divider).map(fav => {
     return {
       label: fav.boardname,
@@ -190,7 +191,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(
     vscode.commands.registerCommand('ptt.favorite-board', async () => {
-      
       const boardlist: string[] = ctx.globalState.get('boardlist') || [];
       const boardName = await pickFavorite();
       const boards = [...new Set(boardlist.concat(boardName))];

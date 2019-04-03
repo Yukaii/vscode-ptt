@@ -104,7 +104,20 @@
           "icon": "media/dep.svg"
         }
       ]
-    }
+    },
+    "configuration": [
+      {
+        "title": "VSCode PTT 設定",
+        "properties": {
+          "kickLogin": {
+            "description": "強行登入（踢出已登入使用者）",
+            "type": "boolean",
+            "scope": "window",
+            "default": false
+          }
+        }
+      }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
