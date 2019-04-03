@@ -1,5 +1,12 @@
 # Change Log
 
+## 未發佈
+
+### Added
+
+- 保留已登入使用者 [#6](https://github.com/Yukaii/vscode-ptt/issues/6)，也有設定值可以更改此行為
+- 升級 ptt-client 到 0.5.2，大感謝 [@kevinptt0323](https://github.com/kevinptt0323)
+
 ## 0.1.0
 
 ### Added
