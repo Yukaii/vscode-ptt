@@ -1,6 +1,6 @@
 # Change Log
 
-## 未發佈
+## 0.2.0
 
 ### Added
 
