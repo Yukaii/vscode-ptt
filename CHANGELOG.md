@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.2.1
+
+### Fixed
+
+- 加入看板前檢查看板是否存在 [#13](https://github.com/Yukaii/vscode-ptt/pull/13) 感謝 [@JosephT5566](https://github.com/JosephT5566)
+
 ## 0.2.0
 
 ### Added
