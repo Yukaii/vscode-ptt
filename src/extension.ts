@@ -160,6 +160,17 @@ export async function activate(context: vscode.ExtensionContext) {
       placeHolder: 'C_Chat'
     });
 
+    if (boardName){
+      const checkBoard = await ptt.enterBoard(boardName);
+      if (!checkBoard) {
+        vscode.window.showInformationMessage("此看板不存在");
+        return;
+      }
+    }
+    else{
+      return;
+    }
+
     const boardlist: string[] = ctx.globalState.get('boardlist') || [];
     const boards = [...new Set(boardlist.concat(boardName))];
     ctx.globalState.update('boardlist', boards.filter(Boolean));
