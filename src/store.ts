@@ -1,4 +1,4 @@
-interface ArticleListItem {
+export interface ArticleListItem {
   sn: number;
   push: string;
   date: string;
@@ -33,10 +33,25 @@ class ArticleStore {
     const ids = this.articleIds[boardname] || [];
     this.articleIds[boardname] = [...new Set(ids.concat(articles.map(art => art.sn)))];
   }
+  
+  release (boardname: string) {
+    this.articleStore[boardname] = [];
+    this.articleIds[boardname] = [];
+  }
 
   lastSn (boardname: string) {
     return this.asList(boardname).slice(-1)[0].sn;
   }
+
+  isEmpty (boardname: string)
+  {
+    if (this.asList(boardname).length === 0)
+    {
+      return true;
+    }
+    return false;
+  }
+
 }
 
 export default new ArticleStore();

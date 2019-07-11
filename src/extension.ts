@@ -7,13 +7,25 @@ import key from 'ptt-client/dist/utils/keyboard';
 import initProxy from './proxy';
 import { PttTreeDataProvider, Board } from './pttDataProvider';
 import ContentProvider from './provider';
-import store from './store';
+import store, { ArticleListItem } from './store';
 
 let proxyServer;
 let proxyAddress;
 let ptt;
 let ctx: vscode.ExtensionContext;
 let pttProvider: PttTreeDataProvider;
+
+export interface FavoriteBoardItem{
+  bn: string;
+  read: string;
+  boardname: string;
+  category: string;
+  title: string;
+  users: string;
+  admin: string;
+  folder: boolean;
+  divider: boolean;
+}
 
 async function intializeProxy () {
   const { server, address } = await initProxy();
@@ -92,7 +104,7 @@ async function login (silent = false) {
 async function pickFavorite (): Promise<string> {
   await login();
 
-  const favorites = await ptt.getFavorite();
+  const favorites:FavoriteBoardItem[] = await ptt.getFavorite();
   // TODO: exclude subscribed boards
   const favoriteItems: vscode.QuickPickItem[] = favorites.filter(f => !f.divider).map(fav => {
     return {
@@ -107,6 +119,36 @@ async function pickFavorite (): Promise<string> {
   }
   else{
     return null;
+  }
+}
+
+async function searchArticleByPush(boardname: string, push: number): Promise<ArticleListItem[]>
+{
+  let searchedArticles: ArticleListItem[] = await fillPushArray(boardname, push, 10);
+  return searchedArticles;
+}
+
+async function fillPushArray(boardname: string, push: number, articleNum: number, offset: number = 0, articles: ArticleListItem[] = []): Promise<ArticleListItem[]>
+{
+  if (articles.length > articleNum)
+  {
+    return articles;
+  }
+  else
+  {
+    let articlesStore: ArticleListItem[];
+    let lastsn: number;
+    
+    articlesStore = await ptt.getArticles(boardname, offset);
+    lastsn = articlesStore.slice(-1)[0].sn;
+
+    let filteredStore = articlesStore.filter((article) =>
+    {
+      let pushNumber: string = (article.push === '爆') ? '100' : article.push;
+      return (Number(pushNumber) >= push);
+    });
+    articles.push(...filteredStore);
+    return fillPushArray(boardname, push, articleNum, lastsn, articles);
   }
 }
 
@@ -197,6 +239,35 @@ export async function activate(context: vscode.ExtensionContext) {
     const lastSn = store.lastSn(boardname);
     const articles = await ptt.getArticles(boardname, lastSn - 1);
     store.add(boardname, articles);
+    pttProvider.refresh();
+  }));
+
+  context.subscriptions.push(vscode.commands.registerCommand('ptt.release-board', async (board: Board) => {
+    store.release(board.boardname);
+    pttProvider.refresh();
+  }));
+
+  context.subscriptions.push(vscode.commands.registerCommand('ptt.search-board-by-push', async (board: Board) => {
+    let push = await vscode.window.showInputBox({
+      prompt: '輸入推文數',
+      placeHolder: '0 ~ 100'
+    });
+
+    if (Number(push) > 100)
+    {
+      push = '100';
+    }
+
+    if (store.isEmpty(board.boardname) === false)
+    {
+      store.release(board.boardname);
+    }
+
+    vscode.window.showInformationMessage('開始搜尋');
+    let pushArticles: ArticleListItem[] = await searchArticleByPush(board.boardname, Number(push));
+    vscode.window.showInformationMessage('完成搜尋');
+
+    store.add(board.boardname, pushArticles);
     pttProvider.refresh();
   }));
 
