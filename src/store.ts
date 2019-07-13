@@ -45,11 +45,7 @@ class ArticleStore {
 
   isEmpty (boardname: string)
   {
-    if (this.asList(boardname).length === 0)
-    {
-      return true;
-    }
-    return false;
+    return this.asList(boardname).length === 0;
   }
 
 }
