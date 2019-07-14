@@ -14,7 +14,7 @@ export class PttTreeDataProvider implements vscode.TreeDataProvider<Node> {
 		this._onDidChangeTreeData.fire();
   }
 
-  getTreeItem (element: Board): vscode.TreeItem {
+  getTreeItem (element: Node): vscode.TreeItem {
 		return element;
 	}
 
@@ -23,40 +23,105 @@ export class PttTreeDataProvider implements vscode.TreeDataProvider<Node> {
       return [];
     }
 
-    if (element) {
-      // expand board node
-      const articleNodes = await this.createArticleList((element as Board).boardname);
-      return articleNodes;
-    } else {
-      // list board nodes
-      const boardlist: string[] = this.ctx.globalState.get('boardlist') || [];
-      if (boardlist.length > 0) {
-        return boardlist.sort().map(board => new Board(board, vscode.TreeItemCollapsibleState.Collapsed));
-      } else {
-        return [];
-      }
-    }
+    let childrenFactory = new ChildrenFactory(element, this.ptt, this.ctx);
+    return childrenFactory.getChidrenType().getNode();
   }
+}
 
-  private async createArticleList (boardname: string) {
+export interface IChildren{
+  getNode(): Promise<Node[]>;
+}
+
+export class ArticleChildren implements IChildren
+{
+  element: Node;
+  ptt: any;
+
+  constructor(element: Node, ptt: any)
+  {
+    this.element = element;
+    this.ptt = ptt;
+  }
+  
+  async getNode(): Promise<Node[]>
+  {
+    const articleNodes = await this.createArticleList((this.element as Board).boardname);
+    return articleNodes;
+  }
+  
+  async createArticleList(boardname: string)
+  {
     let articles = store.asList(boardname);
     if (articles.length === 0) {
       articles = await this.ptt.getArticles(boardname);
       store.add(boardname, articles);
     }
-
-    return [
+  
+    let articlesList: (Article | LoadMoreArticle)[] = [
       ...store.asList(boardname).map(article => new Article(
-        `${article.status} ${article.title}`,
+        Number(article.sn),
+        `${article.push} ${article.status} ${article.title}`,
         vscode.TreeItemCollapsibleState.None,
         {
           command: 'ptt.show-article',
           title: '',
           arguments: [article.sn, boardname]
         }
-      )),
+      )).sort((article1, article2) => { // revert sorting order
+        if (article1.sn > article2.sn) { return -1; }
+        else if (article1.sn < article2.sn) { return 1; }
+        return 0;
+      }),
       new LoadMoreArticle(boardname)
     ];
+
+    return articlesList;
+  }
+}
+
+export class StartupChildren implements IChildren
+{
+  ctx: vscode.ExtensionContext;
+  
+  constructor(ctx: vscode.ExtensionContext)
+  {
+    this.ctx = ctx;
+  }
+
+  async getNode(): Promise<Node[]>
+  {
+    const boardlist: string[] = this.ctx.globalState.get('boardlist') || [];
+    if (boardlist.length > 0) {
+      return boardlist.sort().map(board => new Board(board, vscode.TreeItemCollapsibleState.Collapsed));
+    } else {
+      return [];
+    }
+  }
+}
+
+export class ChildrenFactory
+{
+  element: Node;
+  ptt: any;
+  ctx: vscode.ExtensionContext;
+
+  constructor(element: Node, ptt: any, ctx: vscode.ExtensionContext)
+  {
+    this.element = element;
+    this.ptt = ptt;
+    this.ctx = ctx;
+  }
+
+  getChidrenType(): IChildren
+  {
+    if (this.element === undefined)
+    {
+      return new StartupChildren(this.ctx);
+    }
+    else
+    {
+      return new ArticleChildren(this.element, this.ptt);
+    }
   }
 }
 
@@ -74,6 +139,7 @@ export class Board extends vscode.TreeItem {
 
 export class Article extends vscode.TreeItem {
 	constructor(
+    public readonly sn: number,
 		public readonly title: string,
 		public readonly collapsibleState: vscode.TreeItemCollapsibleState,
 		public readonly command?: vscode.Command

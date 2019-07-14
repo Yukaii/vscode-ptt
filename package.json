@@ -41,12 +41,21 @@
         "category": "PTT"
       },
       {
+        "command": "ptt.search-article-by-push",
+        "title": "搜尋推文數",
+        "category": "PTT"
+      },
+      {
         "command": "ptt.add-board",
         "title": "新增訂閱看板"
       },
       {
         "command": "ptt.remove-board",
         "title": "移除訂閱看板"
+      },
+      {
+        "command": "ptt.search-board-by-push",
+        "title": "以推文數搜尋"
       },
       {
         "command": "ptt.refresh-article",
@@ -85,6 +94,10 @@
         {
           "command": "ptt.remove-board",
           "when": "view == pttTree && viewItem == board"
+        },
+        {
+          "command": "ptt.search-board-by-push",
+          "when": "view == pttTree && viewItem == board"
         }
       ]
     },
@@ -122,9 +135,10 @@
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
+    "cleanAndCompile": "tsc --build --clean && tsc -p ./",
     "watch": "tsc -watch -p ./",
     "postinstall": "node ./node_modules/vscode/bin/install",
-    "test": "npm run compile && node ./node_modules/vscode/bin/test"
+    "test": "npm run compile && mocha ./out/test/*.js"
   },
   "devDependencies": {
     "@types/http-proxy": "^1.17.0",
