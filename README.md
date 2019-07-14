@@ -29,6 +29,13 @@
 
 - 特別感謝 [@kevinptt0323](https://github.com/kevinptt0323) 維護的 [ptt-client](https://github.com/kevinptt0323/ptt-client)，少走了很多路，能夠專注於 VSCode 的 API 串接 ❤️
 
+## Contributors
+
+照字母排序
+
+- [@JosephT5566](https://github.com/JosephT5566)
+- [@Yukaii](https://github.com/Yukaii)
+
 ## LICENSE
 
 WTFPL

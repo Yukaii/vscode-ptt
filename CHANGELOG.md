@@ -1,5 +1,19 @@
 # Change Log
 
+## 0.3.0
+
+### Fixed
+
+- 用 factory mode 修改了 getTreeItem() 的實作 [#14](https://github.com/Yukaii/vscode-ptt/pull/14) [@JosephT5566](https://github.com/JosephT5566)
+- 讓文章顯示的順序依照文章編號排序 [#14](https://github.com/Yukaii/vscode-ptt/pull/14) [@JosephT5566](https://github.com/JosephT5566)
+
+### Added
+
+- 以推文數搜尋文章 [#14](https://github.com/Yukaii/vscode-ptt/pull/14) [@JosephT5566](https://github.com/JosephT5566)
+    ![search-article-by-push](https://i.imgur.com/91tbyYB.gif)
+
+感謝 [@JosephT5566](https://github.com/JosephT5566) 熱烈凱瑞了這次的 Release！
+
 ## 0.2.1
 
 ### Fixed
