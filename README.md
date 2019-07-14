@@ -21,6 +21,10 @@
 
 ![Open article](docs/images/vscode-ptt-open-article.gif)
 
+### 以推文數搜尋文章
+
+![Search by push count](docs/images/search-article-by-push.gif)
+
 ## Release Notes
 
 詳見 [Changelog](https://github.com/Yukaii/vscode-ptt/blob/master/CHANGELOG.md)
