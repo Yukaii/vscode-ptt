@@ -152,7 +152,7 @@
   "dependencies": {
     "find-free-port": "^2.0.0",
     "http-proxy": "^1.17.0",
-    "ptt-client": "^0.5.2",
+    "ptt-client": "^0.8.0",
     "ws": "^6.2.1"
   }
 }

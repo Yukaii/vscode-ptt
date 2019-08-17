@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import PTT from 'ptt-client';
-import key from 'ptt-client/dist/utils/keyboard';
+import key from 'ptt-client/dist/utils/keymap';
 
 (global as any).WebSocket = require('ws');
 
@@ -122,34 +122,9 @@ async function pickFavorite (): Promise<string> {
   }
 }
 
-async function searchArticleByPush(boardname: string, push: number): Promise<ArticleListItem[]>
+function setSearchCondition(type: string, criteria: string): void
 {
-  let searchedArticles: ArticleListItem[] = await fillPushArray(boardname, push, 10);
-  return searchedArticles;
-}
-
-async function fillPushArray(boardname: string, push: number, articleNum: number, offset: number = 0, articles: ArticleListItem[] = []): Promise<ArticleListItem[]>
-{
-  if (articles.length > articleNum)
-  {
-    return articles;
-  }
-  else
-  {
-    let articlesStore: ArticleListItem[];
-    let lastsn: number;
-    
-    articlesStore = await ptt.getArticles(boardname, offset);
-    lastsn = articlesStore.slice(-1)[0].sn;
-
-    let filteredStore = articlesStore.filter((article) =>
-    {
-      let pushNumber: string = (article.push === '爆') ? '100' : article.push;
-      return (Number(pushNumber) >= push);
-    });
-    articles.push(...filteredStore);
-    return fillPushArray(boardname, push, articleNum, lastsn, articles);
-  }
+  ptt.setSearchCondition(type, criteria);
 }
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -232,6 +207,7 @@ export async function activate(context: vscode.ExtensionContext) {
   }));
 
   context.subscriptions.push(vscode.commands.registerCommand('ptt.refresh-article', () => {
+    ptt.resetSearchCondition();
     pttProvider.refresh();
   }));
 
@@ -264,7 +240,8 @@ export async function activate(context: vscode.ExtensionContext) {
     }
 
     vscode.window.showInformationMessage('開始搜尋');
-    let pushArticles: ArticleListItem[] = await searchArticleByPush(board.boardname, Number(push));
+    setSearchCondition("push", push);
+    let pushArticles: ArticleListItem[] = await ptt.getArticles(board.boardname);
     vscode.window.showInformationMessage('完成搜尋');
 
     store.add(board.boardname, pushArticles);
