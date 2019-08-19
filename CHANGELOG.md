@@ -4,10 +4,10 @@
 
 ### Fixed
 
-- 升級 ptt-client 到 0.8.1，一併修正了搜尋 API 的更動 [#15](https://github.com/Yukaii/vscode-ptt/pull/15) [@JosephT5566]
+- 升級 ptt-client 到 0.8.1，一併修正了搜尋 API 的更動 [#15](https://github.com/Yukaii/vscode-ptt/pull/15) [@JosephT5566](https://github.com/JosephT5566)
 - 修正 「從我的最愛新增訂閱 列表不完整 [#11](https://github.com/Yukaii/vscode-ptt/issues/11)」，升級 ptt-client 版本解決
 
-感謝上游 ptt-client @kevinptt0323 支援、@JosephT5566 開 PR 修正。
+感謝上游 ptt-client [@kevinptt0323](https://github.com/kevinptt0323) 支援、[@JosephT5566](https://github.com/JosephT5566) 開 PR 修正。
 
 ~~抱腿抱的好，用嘴寫程式就好~~（逃
 
