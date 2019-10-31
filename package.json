@@ -150,9 +150,6 @@
     "vscode": "^1.1.33"
   },
   "dependencies": {
-    "find-free-port": "^2.0.0",
-    "http-proxy": "^1.17.0",
-    "ptt-client": "^0.8.0",
-    "ws": "^6.2.1"
+    "ptt-client": "^0.8.1"
   }
 }
