@@ -4,13 +4,10 @@ import key from 'ptt-client/dist/utils/keymap';
 
 (global as any).WebSocket = require('ws');
 
-import initProxy from './proxy';
 import { PttTreeDataProvider, Board } from './pttDataProvider';
 import ContentProvider from './provider';
 import store, { ArticleListItem } from './store';
 
-let proxyServer;
-let proxyAddress;
 let ptt;
 let ctx: vscode.ExtensionContext;
 let pttProvider: PttTreeDataProvider;
@@ -27,15 +24,9 @@ export interface FavoriteBoardItem{
   divider: boolean;
 }
 
-async function intializeProxy () {
-  const { server, address } = await initProxy();
-  proxyServer = server;
-  proxyAddress = address;
-}
-
-function intializePttClient (url: string) {
+function intializePttClient () {
   return new Promise(resolve => {
-    const ptt = new PTT({ url });
+    const ptt = new PTT({ origin: 'app://vscode-ptt' });
     ptt.once('connect', () => resolve(ptt));
   });
 }
@@ -130,12 +121,8 @@ function setSearchCondition(type: string, criteria: string): void
 export async function activate(context: vscode.ExtensionContext) {
   ctx = context;
 
-  if (!proxyServer) {
-    await intializeProxy();
-  }
-
   if (!ptt) {
-    ptt = await intializePttClient(proxyAddress);
+    ptt = await intializePttClient();
   }
 
   pttProvider = new PttTreeDataProvider(ptt, ctx);
