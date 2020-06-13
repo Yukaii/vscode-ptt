@@ -69,9 +69,9 @@ async function login (silent = false) {
 
   const { username, password } = await getLoginCredential(silent);
 
-  if (!username || !password) {
+  if (!username) {
     if (!silent) {
-      vscode.window.showWarningMessage('需要帳密才能使用 VSCode PTT 噢！');
+      vscode.window.showWarningMessage('需要帳號才能使用 VSCode PTT 噢！');
     }
     return;
   }
