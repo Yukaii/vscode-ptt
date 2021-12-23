@@ -195,7 +195,13 @@ export async function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(vscode.commands.registerCommand('ptt.refresh-article', () => {
     ptt.resetSearchCondition();
-    pttProvider.refresh();
+    const boards = store.getBoardNames();
+    boards.forEach(async (boardname: string) => {
+      store.release(boardname);
+      const articles = await ptt.getArticles(boardname);
+      store.add(boardname, articles);
+      pttProvider.refresh();
+    });
   }));
 
   context.subscriptions.push(vscode.commands.registerCommand('ptt.load-more-article', async (boardname: string) => {
