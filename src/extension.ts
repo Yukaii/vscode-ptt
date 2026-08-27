@@ -8,7 +8,7 @@ import { PttTreeDataProvider, Board } from './pttDataProvider';
 import ContentProvider from './provider';
 import store, { ArticleListItem } from './store';
 
-let ptt;
+let ptt: any;
 let ctx: vscode.ExtensionContext;
 let pttProvider: PttTreeDataProvider;
 
@@ -77,7 +77,7 @@ async function login (silent = false) {
   }
 
   await ptt.login(username, password, vscode.workspace.getConfiguration().get('kickLogin'));
-  var { login } = ptt.state;
+  const { login } = ptt.state;
   if (login) {
     ctx.globalState.update('username', username);
     ctx.globalState.update('password', password);
@@ -92,7 +92,7 @@ async function login (silent = false) {
   }
 }
 
-async function pickFavorite (): Promise<string> {
+async function pickFavorite (): Promise<string | null> {
   await login();
 
   const favorites:FavoriteBoardItem[] = await ptt.getFavorite();

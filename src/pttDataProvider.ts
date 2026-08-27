@@ -11,7 +11,7 @@ export class PttTreeDataProvider implements vscode.TreeDataProvider<Node> {
   readonly onDidChangeTreeData: vscode.Event<Board | undefined> = this._onDidChangeTreeData.event;
 
   refresh(): void {
-		this._onDidChangeTreeData.fire();
+		this._onDidChangeTreeData.fire(undefined);
   }
 
   getTreeItem (element: Node): vscode.TreeItem {
