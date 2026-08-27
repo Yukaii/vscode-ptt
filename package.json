@@ -18,6 +18,13 @@
   },
   "license": "WTFPL",
   "activationEvents": [
+    "onCommand:ptt.login",
+    "onCommand:ptt.logout",
+    "onCommand:ptt.add-board",
+    "onCommand:ptt.remove-board",
+    "onCommand:ptt.search-board-by-push",
+    "onCommand:ptt.refresh-article",
+    "onCommand:ptt.favorite-board",
     "onView:pttTree"
   ],
   "repository": {
@@ -147,8 +154,8 @@
     "@types/ws": "^8.5.10",
     "@typescript-eslint/eslint-plugin": "^8.68.0",
     "@typescript-eslint/parser": "^8.68.0",
-    "@vscode/test-cli": "^0.0.8",
-    "@vscode/test-electron": "^2.3.9",
+    "@vscode/test-cli": "^0.0.15",
+    "@vscode/test-electron": "^3.1.0",
     "dotenv": "^16.4.5",
     "eslint": "^9.39.5",
     "glob": "^10.3.10",

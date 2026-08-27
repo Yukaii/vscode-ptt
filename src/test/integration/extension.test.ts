@@ -2,7 +2,14 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 
 suite('Extension Integration Tests', () => {
-  test('Commands are registered', async () => {
+  test('Extension activates and registers commands', async () => {
+    const ext = vscode.extensions.getExtension('Yukai.vscode-ptt');
+    assert.ok(ext, 'Extension should be present in host');
+
+    if (!ext.isActive) {
+      await ext.activate();
+    }
+
     const commands = await vscode.commands.getCommands(true);
 
     assert.ok(commands.includes('ptt.login'), 'ptt.login should be registered');
