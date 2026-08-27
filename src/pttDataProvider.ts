@@ -19,7 +19,7 @@ export class PttTreeDataProvider implements vscode.TreeDataProvider<Node> {
 	}
 
 	async getChildren (element?: Node): Promise<Node[]> {
-    if (!this.ptt.state.login) {
+    if (!this.ptt?.state?.login) {
       return [];
     }
 

@@ -25,16 +25,25 @@ export interface FavoriteBoardItem{
   divider: boolean;
 }
 
-function intializePttClient () {
+function intializePttClient (timeoutMs = 5000) {
   return new Promise(resolve => {
-    const ptt = new PTT({ origin: 'app://vscode-ptt' });
-    ptt.once('connect', () => resolve(ptt));
+    const client = new PTT({ origin: 'app://vscode-ptt' });
+    const timer = setTimeout(() => {
+      resolve(client);
+    }, timeoutMs);
+    client.once('connect', () => {
+      clearTimeout(timer);
+      resolve(client);
+    });
+    client.once('error', () => {
+      clearTimeout(timer);
+      resolve(client);
+    });
   });
 }
 
 function checkLogin () {
-  const { login } = ptt.state;
-  return login;
+  return ptt?.state?.login ?? false;
 }
 
 async function getLoginCredential (silent = false) {
