@@ -1,8 +1,9 @@
 import * as vscode from 'vscode';
+import WebSocket from 'ws';
 import PTT from 'ptt-client';
 import key from 'ptt-client/dist/utils/keymap';
 
-(global as any).WebSocket = require('ws');
+(global as any).WebSocket = WebSocket;
 
 import { PttTreeDataProvider, Board } from './pttDataProvider';
 import ContentProvider from './provider';
@@ -228,7 +229,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
     vscode.window.showInformationMessage('開始搜尋');
     setSearchCondition("push", push);
-    let pushArticles: ArticleListItem[] = await ptt.getArticles(board.boardname);
+    const pushArticles: ArticleListItem[] = await ptt.getArticles(board.boardname);
     vscode.window.showInformationMessage('完成搜尋');
 
     store.add(board.boardname, pushArticles);

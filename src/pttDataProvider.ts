@@ -23,7 +23,7 @@ export class PttTreeDataProvider implements vscode.TreeDataProvider<Node> {
       return [];
     }
 
-    let childrenFactory = new ChildrenFactory(element, this.ptt, this.ctx);
+    const childrenFactory = new ChildrenFactory(element, this.ptt, this.ctx);
     return childrenFactory.getChidrenType().getNode();
   }
 }
@@ -57,7 +57,7 @@ export class ArticleChildren implements IChildren
       store.add(boardname, articles);
     }
   
-    let articlesList: (Article | LoadMoreArticle)[] = [
+    const articlesList: (Article | LoadMoreArticle)[] = [
       ...store.asList(boardname).map(article => new Article(
         Number(article.sn),
         `${article.push} ${article.status} ${article.title}`,

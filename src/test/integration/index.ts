@@ -10,20 +10,21 @@ export function run(): Promise<void> {
 
   const testsRoot = path.resolve(__dirname, '.');
 
-  return new Promise(async (resolve, reject) => {
-    try {
-      const files = await glob('**/**.test.js', { cwd: testsRoot });
-      files.forEach((f) => mocha.addFile(path.resolve(testsRoot, f)));
+  return new Promise((resolve, reject) => {
+    glob('**/**.test.js', { cwd: testsRoot })
+      .then((files) => {
+        files.forEach((f) => mocha.addFile(path.resolve(testsRoot, f)));
 
-      mocha.run((failures) => {
-        if (failures > 0) {
-          reject(new Error(`${failures} tests failed.`));
-        } else {
-          resolve();
-        }
+        mocha.run((failures) => {
+          if (failures > 0) {
+            reject(new Error(`${failures} tests failed.`));
+          } else {
+            resolve();
+          }
+        });
+      })
+      .catch((err) => {
+        reject(err);
       });
-    } catch (err) {
-      reject(err);
-    }
   });
 }

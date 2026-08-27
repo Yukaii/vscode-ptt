@@ -17,8 +17,8 @@ export const mockVscode = {
     Expanded: 2
   },
   EventEmitter: class {
-    private listeners: Function[] = [];
-    event = (listener: Function) => {
+    private listeners: ((data: any) => void)[] = [];
+    event = (listener: (data: any) => void) => {
       this.listeners.push(listener);
     };
     fire(data?: any) {
