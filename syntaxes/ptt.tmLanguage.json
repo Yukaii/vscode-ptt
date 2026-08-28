@@ -42,7 +42,7 @@
       "patterns": [
         {
           "name": "meta.header.author.ptt",
-          "match": "^(作者:)\\s*([^\\s()]+)?(?:\\s*(\\([^\\)]*\\)))?(?:\\s*(看板:)\\s*(\\S+))?",
+          "match": "^[\\s]*(作者[:：]?|發信人[:：]?|轉錄者[:：]?)\\s*([^\\s()]+)?(?:\\s*(\\([^\\)]*\\)))?(?:[\\s,]+(看板[:：]?|信區[:：]?)\\s*(\\S+))?\\s*$",
           "captures": {
             "1": {
               "name": "keyword.other.header.ptt"
@@ -63,7 +63,7 @@
         },
         {
           "name": "meta.header.title.ptt",
-          "match": "^(標題:)\\s*(?:(Re:\\s*)?(\\[[^\\]]+\\])\\s*)?(.*)$",
+          "match": "^[\\s]*(標題[:：]?)\\s*(?:((?:(?:Re|RE|re|Fw|FW|fw|R):\\s*)+))?(?:(\\[[^\\]\\r\\n]+\\])\\s*)?(.*?)\\s*$",
           "captures": {
             "1": {
               "name": "keyword.other.header.ptt"
@@ -81,7 +81,7 @@
         },
         {
           "name": "meta.header.time.ptt",
-          "match": "^(時間:)\\s*(.*)$",
+          "match": "^[\\s]*(時間[:：]?)\\s*(.*?)\\s*$",
           "captures": {
             "1": {
               "name": "keyword.other.header.ptt"
@@ -199,7 +199,7 @@
     },
     "quote-header": {
       "name": "markup.quote.header.ptt",
-      "match": "^(※\\s*引述[《<])([^》>]+)([》>]之銘言[：:])",
+      "match": "^[\\s]*(※\\s*引述[《<])([^》>]+)([》>]之銘言[：:]?)",
       "captures": {
         "1": {
           "name": "keyword.other.quote.ptt markup.quote.ptt"
@@ -234,7 +234,7 @@
       "patterns": [
         {
           "name": "meta.notice.origin.ptt",
-          "match": "^(※\\s*發信站:)\\s*(批踢踢實業坊\\([^\\)]+\\))(?:,\\s*(來自:)\\s*([^\\s]+(?:\\s*\\([^\\)]*\\))?))?",
+          "match": "^[\\s]*(※\\s*發信站[:：]?)\\s*(批踢踢實業坊\\([^\\)]+\\))(?:,\\s*(來自[:：]?)\\s*([^\\s]+(?:\\s*\\([^\\)]*\\))?))?",
           "captures": {
             "1": {
               "name": "keyword.other.notice.ptt"
@@ -252,7 +252,7 @@
         },
         {
           "name": "meta.notice.url.ptt",
-          "match": "^(※\\s*文章網址:)\\s*(\\S+)",
+          "match": "^[\\s]*(※\\s*文章網址[:：]?)\\s*(\\S+)",
           "captures": {
             "1": {
               "name": "keyword.other.notice.ptt"
@@ -264,7 +264,7 @@
         },
         {
           "name": "meta.notice.edit.ptt",
-          "match": "^(※\\s*編輯:)\\s*([^\\s()]+)(?:\\s*(\\([^)]+\\)))?,\\s*(.*)$",
+          "match": "^[\\s]*(※\\s*編輯[:：]?)\\s*([^\\s()]+)(?:\\s*(\\([^)]+\\)))?,\\s*(.*)$",
           "captures": {
             "1": {
               "name": "keyword.other.notice.ptt"
@@ -282,7 +282,7 @@
         },
         {
           "name": "comment.line.notice.ptt",
-          "match": "^(※)\\s*(.*)$",
+          "match": "^[\\s]*(※)\\s*(.*)$",
           "captures": {
             "1": {
               "name": "keyword.other.notice.ptt"

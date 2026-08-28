@@ -52,20 +52,52 @@ describe('PTT Syntax Highlighting and Language Configuration Tests', () => {
       grammar = JSON.parse(fs.readFileSync(grammarPath, 'utf8'));
     });
 
-    it('matches header author line', () => {
+    it('matches header author line with colon and without colon (BBS style)', () => {
       const authorRule = grammar.repository.header.patterns.find((p: any) => p.name === 'meta.header.author.ptt');
       const regex = new RegExp(authorRule.match);
-      const sample = '作者: Yukaii (魚凱) 看板: Gossiping';
-      const match = sample.match(regex);
-      assert.ok(match);
-      assert.strictEqual(match[1], '作者:');
-      assert.strictEqual(match[2], 'Yukaii');
-      assert.strictEqual(match[3], '(魚凱)');
-      assert.strictEqual(match[4], '看板:');
-      assert.strictEqual(match[5], 'Gossiping');
+
+      // Standard format with colon
+      const sample1 = '作者: Yukaii (魚凱) 看板: Gossiping';
+      const match1 = sample1.match(regex);
+      assert.ok(match1);
+      assert.strictEqual(match1[1], '作者:');
+      assert.strictEqual(match1[2], 'Yukaii');
+      assert.strictEqual(match1[3], '(魚凱)');
+      assert.strictEqual(match1[4], '看板:');
+      assert.strictEqual(match1[5], 'Gossiping');
+
+      // BBS screen format with spaces and no colons
+      const sample2 = '作者  wl2340167 (HD)                                            看板  C_Chat ';
+      const match2 = sample2.match(regex);
+      assert.ok(match2);
+      assert.strictEqual(match2[1], '作者');
+      assert.strictEqual(match2[2], 'wl2340167');
+      assert.strictEqual(match2[3], '(HD)');
+      assert.strictEqual(match2[4], '看板');
+      assert.strictEqual(match2[5], 'C_Chat');
+
+      // Author with fullwidth colon and 發信人 / 信區
+      const sample3 = '發信人: wl2340167 (HD), 看板: C_Chat';
+      const match3 = sample3.match(regex);
+      assert.ok(match3);
+      assert.strictEqual(match3[1], '發信人:');
+      assert.strictEqual(match3[2], 'wl2340167');
+      assert.strictEqual(match3[3], '(HD)');
+      assert.strictEqual(match3[4], '看板:');
+      assert.strictEqual(match3[5], 'C_Chat');
+
+      // Author without nickname or without board
+      const sample4 = '作者  wl2340167                                                 看板  C_Chat';
+      const match4 = sample4.match(regex);
+      assert.ok(match4);
+      assert.strictEqual(match4[1], '作者');
+      assert.strictEqual(match4[2], 'wl2340167');
+      assert.strictEqual(match4[3], undefined);
+      assert.strictEqual(match4[4], '看板');
+      assert.strictEqual(match4[5], 'C_Chat');
     });
 
-    it('matches header title line and category tags', () => {
+    it('matches header title line and category tags with BBS formatting', () => {
       const titleRule = grammar.repository.header.patterns.find((p: any) => p.name === 'meta.header.title.ptt');
       const regex = new RegExp(titleRule.match);
 
@@ -83,16 +115,50 @@ describe('PTT Syntax Highlighting and Language Configuration Tests', () => {
       assert.strictEqual(match2[2], 'Re: ');
       assert.strictEqual(match2[3], '[問卦]');
       assert.strictEqual(match2[4], '回覆標題測試');
+
+      // BBS screen format with leading space, multiple spaces, no colon
+      const sample3 = ' 標題  [閒聊] 無限暖暖 疊紙神了                                               ';
+      const match3 = sample3.match(regex);
+      assert.ok(match3);
+      assert.strictEqual(match3[1], '標題');
+      assert.strictEqual(match3[2], undefined);
+      assert.strictEqual(match3[3], '[閒聊]');
+      assert.strictEqual(match3[4], '無限暖暖 疊紙神了');
+
+      // BBS forward format
+      const sample4 = ' 標題  Fw: [閒聊] 無限暖暖 疊紙神了';
+      const match4 = sample4.match(regex);
+      assert.ok(match4);
+      assert.strictEqual(match4[1], '標題');
+      assert.strictEqual(match4[2], 'Fw: ');
+      assert.strictEqual(match4[3], '[閒聊]');
+      assert.strictEqual(match4[4], '無限暖暖 疊紙神了');
+
+      // Title without category tag
+      const sample5 = ' 標題  Re: 無限暖暖 疊紙神了';
+      const match5 = sample5.match(regex);
+      assert.ok(match5);
+      assert.strictEqual(match5[1], '標題');
+      assert.strictEqual(match5[2], 'Re: ');
+      assert.strictEqual(match5[3], undefined);
+      assert.strictEqual(match5[4], '無限暖暖 疊紙神了');
     });
 
-    it('matches header time line', () => {
+    it('matches header time line with BBS formatting and colons', () => {
       const timeRule = grammar.repository.header.patterns.find((p: any) => p.name === 'meta.header.time.ptt');
       const regex = new RegExp(timeRule.match);
-      const sample = '時間: Fri Aug 28 15:25:44 2026';
-      const match = sample.match(regex);
-      assert.ok(match);
-      assert.strictEqual(match[1], '時間:');
-      assert.strictEqual(match[2], 'Fri Aug 28 15:25:44 2026');
+
+      const sample1 = '時間: Fri Aug 28 15:25:44 2026';
+      const match1 = sample1.match(regex);
+      assert.ok(match1);
+      assert.strictEqual(match1[1], '時間:');
+      assert.strictEqual(match1[2], 'Fri Aug 28 15:25:44 2026');
+
+      const sample2 = ' 時間  Fri Aug 28 23:44:23 2026                                               ';
+      const match2 = sample2.match(regex);
+      assert.ok(match2);
+      assert.strictEqual(match2[1], '時間');
+      assert.strictEqual(match2[2], 'Fri Aug 28 23:44:23 2026');
     });
 
     it('matches separator lines and signature divider', () => {
