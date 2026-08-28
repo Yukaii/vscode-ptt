@@ -2,3 +2,4 @@ overrides:
   terminal.js: 1.0.10
 patchedDependencies:
   ptt-client: patches/ptt-client.patch
+  terminal.js: patches/terminal.js.patch

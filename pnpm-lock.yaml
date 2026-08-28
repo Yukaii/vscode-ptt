@@ -110,6 +110,7 @@ overrides:
 
 patchedDependencies:
   ptt-client: e461c08ada859aed4527291e2bece42273622d9a14821d73b47fa8746e928550
+  terminal.js: 1412dc03cf1253124f4e048ab0c1ed4ea904d6ea0915cf1a2f92661641036798
 
 importers:
 
@@ -2144,7 +2145,7 @@ snapshots:
       '@babel/runtime': 7.29.7
       eventemitter3: 4.0.7
       sleep-promise: 8.0.1
-      terminal.js: 1.0.10
+      terminal.js: 1.0.10(patch_hash=1412dc03cf1253124f4e048ab0c1ed4ea904d6ea0915cf1a2f92661641036798)
       uao-js: 1.0.1
       wcwidth: 1.0.1
       ws: 7.5.13
@@ -2272,7 +2273,7 @@ snapshots:
 
   tapable@2.3.3: {}
 
-  terminal.js@1.0.10: {}
+  terminal.js@1.0.10(patch_hash=1412dc03cf1253124f4e048ab0c1ed4ea904d6ea0915cf1a2f92661641036798): {}
 
   test-exclude@8.0.0:
     dependencies:
