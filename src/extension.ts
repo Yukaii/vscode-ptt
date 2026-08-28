@@ -52,11 +52,55 @@ export function refreshTreeView () {
   (pttProvider as any)?.refresh?.();
 }
 
+export class PttQueue {
+  private queue: Promise<unknown> = Promise.resolve();
+
+  public run<T>(task: () => Promise<T>): Promise<T> {
+    const next = this.queue.then(task, task);
+    this.queue = next.then(() => {}, () => {});
+    return next;
+  }
+}
+
+export const pttQueue = new PttQueue();
+
+export function wrapPttWithQueue(client: IPttClient): IPttClient {
+  if (!client || (client as any).__isQueued) {
+    return client;
+  }
+
+  const asyncMethods = new Set([
+    'getFavorite',
+    'getArticles',
+    'getArticle',
+    'enterBoard',
+    'send',
+    'login',
+    'logout'
+  ]);
+
+  return new Proxy(client, {
+    get(target, prop, receiver) {
+      if (prop === '__isQueued') {
+        return true;
+      }
+      const orig = Reflect.get(target, prop, receiver);
+      if (typeof prop === 'string' && asyncMethods.has(prop) && typeof orig === 'function') {
+        return function (...args: unknown[]) {
+          return pttQueue.run(() => orig.apply(target, args));
+        };
+      }
+      return orig;
+    }
+  });
+}
+
 export function setPttClient (client: IPttClient) {
-  ptt = client;
-  (pttProvider as any)?.setPtt?.(client);
-  pttViewController?.setPtt?.(client);
-  contentProvider?.setPtt?.(client);
+  const queuedClient = wrapPttWithQueue(client);
+  ptt = queuedClient;
+  (pttProvider as any)?.setPtt?.(queuedClient);
+  pttViewController?.setPtt?.(queuedClient);
+  contentProvider?.setPtt?.(queuedClient);
   contentProvider?.setEnsureLogin?.(async () => {
     if (!checkLogin()) {
       await login(true);

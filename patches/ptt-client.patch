@@ -1,8 +1,194 @@
 diff --git a/dist/sites/ptt/bot.js b/dist/sites/ptt/bot.js
-index 0cb0b93c5d1039953bd006556e2edb58deb765fa..4daeee285d2f79498ab3137f71cfda0019240e59 100644
+index 0cb0b93c5d1039953bd006556e2edb58deb765fa..23157df51f801c78ead413572db91387aba45ff4 100644
 --- a/dist/sites/ptt/bot.js
 +++ b/dist/sites/ptt/bot.js
-@@ -795,10 +795,22 @@ function (_EventEmitter) {
+@@ -621,30 +621,43 @@ function (_EventEmitter) {
+                 return this.enterBoard(boardname);
+ 
+               case 3:
++                entered = _context7.sent;
++                if (entered) {
++                  _context7.next = 8;
++                  break;
++                }
++
++                _context7.next = 6;
++                return this.enterIndex();
++
++              case 6:
++                return _context7.abrupt("return", []);
++
++              case 8:
+                 if (!this.isSearchConditionSet()) {
+-                  _context7.next = 7;
++                  _context7.next = 12;
+                   break;
+                 }
+ 
+                 searchString = this.searchCondition.conditions.map(function (condition) {
+                   return condition.toSearchString();
+                 }).join(_keymap["default"].Enter);
+-                _context7.next = 7;
++                _context7.next = 12;
+                 return this.send("".concat(searchString).concat(_keymap["default"].Enter));
+ 
+-              case 7:
++              case 12:
+                 offset |= 0;
+ 
+                 if (!(offset > 0)) {
+-                  _context7.next = 12;
++                  _context7.next = 17;
+                   break;
+                 }
+ 
+                 offset = Math.max(offset - 9, 1);
+-                _context7.next = 12;
++                _context7.next = 17;
+                 return this.send("".concat(_keymap["default"].End).concat(_keymap["default"].End).concat(offset).concat(_keymap["default"].Enter));
+ 
+-              case 12:
++              case 17:
+                 getLine = this.getLine;
+                 articles = [];
+ 
+@@ -664,43 +677,43 @@ function (_EventEmitter) {
+ 
+ 
+                 if (!(articles.length >= 2 && articles[0].sn === 0)) {
+-                  _context7.next = 24;
++                  _context7.next = 29;
+                   break;
+                 }
+ 
+                 _i2 = 1;
+ 
+-              case 17:
++              case 22:
+                 if (!(_i2 < articles.length)) {
+-                  _context7.next = 24;
++                  _context7.next = 29;
+                   break;
+                 }
+ 
+                 if (!(articles[_i2].sn !== 0)) {
+-                  _context7.next = 21;
++                  _context7.next = 26;
+                   break;
+                 }
+ 
+                 articles[0].sn = articles[_i2].sn - _i2;
+-                return _context7.abrupt("break", 24);
++                return _context7.abrupt("break", 29);
+ 
+-              case 21:
++              case 26:
+                 _i2++;
+-                _context7.next = 17;
++                _context7.next = 22;
+                 break;
+ 
+-              case 24:
++              case 29:
+                 for (_i3 = 1; _i3 < articles.length; _i3++) {
+                   articles[_i3].sn = articles[_i3 - 1].sn + 1;
+                 }
+ 
+-                _context7.next = 27;
++                _context7.next = 32;
+                 return this.enterIndex();
+ 
+-              case 27:
++              case 32:
+                 return _context7.abrupt("return", articles.reverse());
+ 
+-              case 28:
++              case 33:
+               case "end":
+                 return _context7.stop();
+             }
+@@ -720,7 +733,7 @@ function (_EventEmitter) {
+       var _getArticle = (0, _asyncToGenerator2["default"])(
+       /*#__PURE__*/
+       _regenerator["default"].mark(function _callee8(boardname, sn) {
+-        var searchString, getLine, hasHeader, article;
++        var entered, searchString, getLine, hasHeader, article;
+         return _regenerator["default"].wrap(function _callee8$(_context8) {
+           while (1) {
+             switch (_context8.prev = _context8.next) {
+@@ -729,23 +742,42 @@ function (_EventEmitter) {
+                 return this.enterBoard(boardname);
+ 
+               case 2:
++                entered = _context8.sent;
++                if (entered) {
++                  _context8.next = 8;
++                  break;
++                }
++
++                _context8.next = 6;
++                return this.enterIndex();
++
++              case 6:
++                return _context8.abrupt("return", {
++                  sn: sn,
++                  author: "",
++                  title: "",
++                  timestamp: "",
++                  lines: []
++                });
++
++              case 8:
+                 if (!this.isSearchConditionSet()) {
+-                  _context8.next = 6;
++                  _context8.next = 12;
+                   break;
+                 }
+ 
+                 searchString = this.searchCondition.conditions.map(function (condition) {
+                   return condition.toSearchString();
+                 }).join(_keymap["default"].Enter);
+-                _context8.next = 6;
++                _context8.next = 12;
+                 return this.send("".concat(searchString).concat(_keymap["default"].Enter));
+ 
+-              case 6:
++              case 12:
+                 getLine = this.getLine;
+-                _context8.next = 9;
++                _context8.next = 15;
+                 return this.send("".concat(sn).concat(_keymap["default"].Enter).concat(_keymap["default"].Enter));
+ 
+-              case 9:
++              case 15:
+                 hasHeader = this._checkArticleWithHeader();
+                 article = {
+                   sn: sn,
+@@ -761,18 +793,18 @@ function (_EventEmitter) {
+                   article.timestamp = (0, _char.substrWidth)('dbcs', getLine(2).str, 7).trim();
+                 }
+ 
+-                _context8.next = 14;
++                _context8.next = 20;
+                 return this.getLines();
+ 
+-              case 14:
++              case 20:
+                 article.lines = _context8.sent;
+-                _context8.next = 17;
++                _context8.next = 23;
+                 return this.enterIndex();
+ 
+-              case 17:
++              case 23:
+                 return _context8.abrupt("return", article);
+ 
+-              case 18:
++              case 24:
+               case "end":
+                 return _context8.stop();
+             }
+@@ -795,10 +827,22 @@ function (_EventEmitter) {
          var offsets,
              getLine,
              favorites,
@@ -26,7 +212,7 @@ index 0cb0b93c5d1039953bd006556e2edb58deb765fa..4daeee285d2f79498ab3137f71cfda00
              _args9 = arguments;
          return _regenerator["default"].wrap(function _callee9$(_context9) {
            while (1) {
-@@ -818,113 +830,127 @@ function (_EventEmitter) {
+@@ -818,113 +862,150 @@ function (_EventEmitter) {
                  return this.enterFavorite(offsets);
  
                case 5:
@@ -68,8 +254,7 @@ index 0cb0b93c5d1039953bd006556e2edb58deb765fa..4daeee285d2f79498ab3137f71cfda00
  
                  stopLoop = true;
 -                return _context9.abrupt("break", 31);
-+                return _context9.abrupt("break", 33);
- 
+-
 -              case 15:
 -                favorite = {
 -                  bn: (0, _char.substrWidth)('dbcs', line, 3, 4).trim() | 0,
@@ -82,7 +267,8 @@ index 0cb0b93c5d1039953bd006556e2edb58deb765fa..4daeee285d2f79498ab3137f71cfda00
 -                  folder: false,
 -                  divider: false
 -                };
--
++                return _context9.abrupt("break", 33);
+ 
 -                if (!(favorite.bn !== favorites.length + 1)) {
 -                  _context9.next = 19;
 +              case 19:
@@ -165,52 +351,74 @@ index 0cb0b93c5d1039953bd006556e2edb58deb765fa..4daeee285d2f79498ab3137f71cfda00
 -              case 26:
 -                return _context9.abrupt("break", 27);
 +              case 35:
-+                prevTopLine = getLine(3).str;
++                prevTopLine = [getLine(3).str, getLine(4).str, getLine(5).str].join('\n');
 +                _context9.next = 38;
 +                return this.send(_keymap["default"].PgDown);
  
 -              case 27:
 -                favorites.push(favorite);
 +              case 38:
-+                _context9.next = 40;
-+                return (0, _sleepPromise["default"])(200);
++                pageChanged = false;
++                t = 0;
  
 -              case 28:
 -                i++;
 -                _context9.next = 10;
 -                break;
 +              case 40:
-+                newTopLine = getLine(3).str;
++                if (!(t < 5)) {
++                  _context9.next = 49;
++                  break;
++                }
  
 -              case 31:
 -                if (!stopLoop) {
 -                  _context9.next = 33;
-+                if (!(newTopLine === prevTopLine)) {
-+                  _context9.next = 43;
++                _context9.next = 43;
++                return (0, _sleepPromise["default"])(150);
++
++              case 43:
++                curLines = [getLine(3).str, getLine(4).str, getLine(5).str].join('\n');
++
++                if (!(curLines !== prevTopLine)) {
++                  _context9.next = 46;
                    break;
                  }
  
 -                return _context9.abrupt("break", 37);
--
++                pageChanged = true;
++                return _context9.abrupt("break", 49);
+ 
 -              case 33:
 -                _context9.next = 35;
 -                return this.send(_keymap["default"].PgDown);
-+                return _context9.abrupt("break", 45);
++              case 46:
++                t++;
++                _context9.next = 40;
++                break;
  
 -              case 35:
 -                _context9.next = 7;
-+              case 43:
++              case 49:
++                if (pageChanged) {
++                  _context9.next = 52;
++                  break;
++                }
++
++                return _context9.abrupt("break", 54);
++
++              case 52:
 +                _context9.next = 10;
                  break;
  
 -              case 37:
 -                _context9.next = 39;
-+              case 45:
-+                _context9.next = 47;
++              case 54:
++                _context9.next = 56;
                  return this.enterIndex();
  
 -              case 39:
-+              case 47:
++              case 56:
                  return _context9.abrupt("return", favorites);
  
 -              case 40:
@@ -218,7 +426,7 @@ index 0cb0b93c5d1039953bd006556e2edb58deb765fa..4daeee285d2f79498ab3137f71cfda00
                case "end":
                  return _context9.stop();
              }
-@@ -1078,7 +1104,7 @@ function (_EventEmitter) {
+@@ -1078,7 +1159,7 @@ function (_EventEmitter) {
              switch (_context12.prev = _context12.next) {
                case 0:
                  _context12.next = 2;
@@ -227,7 +435,7 @@ index 0cb0b93c5d1039953bd006556e2edb58deb765fa..4daeee285d2f79498ab3137f71cfda00
  
                case 2:
                  return _context12.abrupt("return", true);
-@@ -1168,7 +1194,7 @@ function (_EventEmitter) {
+@@ -1168,7 +1249,7 @@ function (_EventEmitter) {
                    return "".concat(offset).concat(_keymap["default"].Enter.repeat(2));
                  }).join();
                  _context14.next = 4;
@@ -237,14 +445,46 @@ index 0cb0b93c5d1039953bd006556e2edb58deb765fa..4daeee285d2f79498ab3137f71cfda00
                case 4:
                  return _context14.abrupt("return", true);
 diff --git a/src/sites/ptt/bot.js b/src/sites/ptt/bot.js
-index 2a9229c4694fed2a79271e397e5676a6c45210ee..742a0008ee37a41a38a336bc3ca8ae7e41985433 100644
+index 2a9229c4694fed2a79271e397e5676a6c45210ee..1447f038dd60b154797b84f10f032bd499cdd4b2 100644
 --- a/src/sites/ptt/bot.js
 +++ b/src/sites/ptt/bot.js
-@@ -339,61 +339,73 @@ class Bot extends EventEmitter {
+@@ -257,7 +257,11 @@ class Bot extends EventEmitter {
+   }
+ 
+   async getArticles(boardname, offset=0) {
+-    await this.enterBoard(boardname);
++    const entered = await this.enterBoard(boardname);
++    if (!entered) {
++      await this.enterIndex();
++      return [];
++    }
+     if (this.isSearchConditionSet()){
+       let searchString = this.searchCondition.conditions.map(condition => condition.toSearchString()).join(key.Enter);
+       await this.send(`${searchString}${key.Enter}`);
+@@ -300,7 +304,17 @@ class Bot extends EventEmitter {
+   }
+ 
+   async getArticle(boardname, sn) {
+-    await this.enterBoard(boardname);
++    const entered = await this.enterBoard(boardname);
++    if (!entered) {
++      await this.enterIndex();
++      return {
++        sn,
++        author: "",
++        title: "",
++        timestamp: "",
++        lines: [],
++      };
++    }
+     if (this.isSearchConditionSet()){
+       let searchString = this.searchCondition.conditions.map(condition => condition.toSearchString()).join(key.Enter);
+       await this.send(`${searchString}${key.Enter}`);
+@@ -339,61 +353,80 @@ class Bot extends EventEmitter {
        offsets = [offsets];
      }
      await this.enterFavorite(offsets);
-+    await sleep(200);
++    await sleep(250);
      const { getLine } = this;
  
      const favorites = [];
@@ -341,17 +581,24 @@ index 2a9229c4694fed2a79271e397e5676a6c45210ee..742a0008ee37a41a38a336bc3ca8ae7e
 +      if (stopLoop || addedInThisPage === 0) {
          break;
        }
-+      const prevTopLine = getLine(3).str;
++      const prevLines = [getLine(3).str, getLine(4).str, getLine(5).str].join('\n');
        await this.send(key.PgDown);
-+      await sleep(200);
-+      const newTopLine = getLine(3).str;
-+      if (newTopLine === prevTopLine) {
++      let pageChanged = false;
++      for (let t = 0; t < 5; t++) {
++        await sleep(150);
++        const curLines = [getLine(3).str, getLine(4).str, getLine(5).str].join('\n');
++        if (curLines !== prevLines) {
++          pageChanged = true;
++          break;
++        }
++      }
++      if (!pageChanged) {
 +        break;
 +      }
      }
  
      await this.enterIndex();
-@@ -456,7 +468,7 @@ class Bot extends EventEmitter {
+@@ -456,7 +489,7 @@ class Bot extends EventEmitter {
    }
  
    async enterIndex() {
@@ -360,7 +607,7 @@ index 2a9229c4694fed2a79271e397e5676a6c45210ee..742a0008ee37a41a38a336bc3ca8ae7e
      return true;
    }
  
-@@ -479,7 +491,7 @@ class Bot extends EventEmitter {
+@@ -479,7 +512,7 @@ class Bot extends EventEmitter {
    async enterFavorite(offsets=[]) {
      const enterOffsetMessage =
        offsets.map(offset => `${offset}${key.Enter.repeat(2)}`).join();

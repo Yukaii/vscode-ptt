@@ -138,4 +138,31 @@ describe('PttTreeView Component and Controller Tests', () => {
       assert.ok(treeView);
     });
   });
+
+  describe('wrapPttWithQueue', () => {
+    it('serializes concurrent async calls in FIFO order', async () => {
+      const mockPtt = new MockPttClient(true);
+      const order: number[] = [];
+
+      mockPtt.getArticles = async (boardname: string) => {
+        if (boardname === 'first') {
+          await new Promise(r => setTimeout(r, 20));
+          order.push(1);
+        } else {
+          order.push(2);
+        }
+        return [];
+      };
+
+      const { wrapPttWithQueue } = await import('../../extension');
+      const queuedPtt = wrapPttWithQueue(mockPtt);
+
+      await Promise.all([
+        queuedPtt.getArticles('first'),
+        queuedPtt.getArticles('second')
+      ]);
+
+      assert.deepStrictEqual(order, [1, 2]);
+    });
+  });
 });
