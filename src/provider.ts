@@ -8,6 +8,10 @@ export default class Provider implements vscode.TextDocumentContentProvider {
 
   constructor (private ptt: IPttClient) {}
 
+  setPtt(ptt: IPttClient) {
+    this.ptt = ptt;
+  }
+
 	dispose() {
 		if (this._subscriptions) {
 			this._subscriptions.dispose();

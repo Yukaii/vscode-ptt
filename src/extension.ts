@@ -15,10 +15,11 @@ export { FavoriteBoardItem } from './types';
 let ptt: IPttClient;
 let ctx: vscode.ExtensionContext;
 let pttProvider: PttTreeDataProvider;
+let contentProvider: ContentProvider;
 
 function intializePttClient (timeoutMs = 5000): Promise<IPttClient> {
   return new Promise(resolve => {
-    const client = new PTT({ origin: 'app://vscode-ptt' });
+    const client = new PTT({ origin: 'https://term.ptt.cc' });
     const timer = setTimeout(() => {
       resolve(client);
     }, timeoutMs);
@@ -33,8 +34,26 @@ function intializePttClient (timeoutMs = 5000): Promise<IPttClient> {
   });
 }
 
+let pttClientFactory = intializePttClient;
+
+export function setPttClientFactory (factory: (timeoutMs?: number) => Promise<IPttClient>) {
+  pttClientFactory = factory;
+}
+
+export function updateLoginContext () {
+  const loggedIn = checkLogin();
+  vscode.commands.executeCommand('setContext', 'ptt:loggedIn', loggedIn);
+}
+
 export function setPttClient (client: IPttClient) {
   ptt = client;
+  pttProvider?.setPtt?.(client);
+  contentProvider?.setPtt?.(client);
+  if (client?.on) {
+    client.on('stateChange', () => updateLoginContext());
+    client.on('disconnect', () => updateLoginContext());
+  }
+  updateLoginContext();
 }
 
 export function setExtensionContext (context: vscode.ExtensionContext) {
@@ -45,23 +64,38 @@ export function setPttProvider (provider: PttTreeDataProvider) {
   pttProvider = provider;
 }
 
+export function setContentProvider (provider: ContentProvider) {
+  contentProvider = provider;
+}
+
 export function checkLogin () {
   return ptt?.state?.login ?? false;
 }
 
+export async function ensureConnectedPttClient (): Promise<boolean> {
+  if (ptt && ptt.state?.connect) {
+    return true;
+  }
+  const newClient = await pttClientFactory();
+  setPttClient(newClient);
+  return Boolean(newClient?.state?.connect);
+}
+
 export async function getLoginCredential (silent = false): Promise<{ username?: string; password?: string }> {
+  const isSilent = silent === true;
   let username = ctx?.globalState?.get<string>('username');
   let password = ctx?.globalState?.get<string>('password');
 
   const hasCredentials = Boolean(username && ((password !== undefined && password !== null) || username.toLowerCase() === 'guest'));
 
-  if (hasCredentials || silent) {
+  if (hasCredentials || isSilent) {
     return { username, password: password ?? '' };
   }
 
   username = await vscode.window.showInputBox({
     placeHolder: '帳號',
-    prompt: '請輸入 PTT 登入帳號'
+    prompt: '請輸入 PTT 登入帳號',
+    value: username || ''
   });
 
   if (!username) {
@@ -86,31 +120,85 @@ export async function getLoginCredential (silent = false): Promise<{ username?: 
 }
 
 export async function login (silent = false) {
+  const isSilent = silent === true;
   if (checkLogin()) {
     return;
   }
 
-  const { username, password } = await getLoginCredential(silent);
+  // Ensure ptt client is connected
+  const connected = await ensureConnectedPttClient();
+  if (!connected) {
+    if (!isSilent) {
+      vscode.window.showWarningMessage('無法連線至 PTT 伺服器，請稍後再試。');
+    }
+    return;
+  }
+
+  let { username, password } = await getLoginCredential(isSilent);
 
   const isGuest = username?.toLowerCase() === 'guest';
   if (!username || (password === undefined && !isGuest)) {
-    if (!silent) {
+    if (!isSilent) {
       vscode.window.showWarningMessage('需要帳密才能使用 VSCode PTT 噢！');
     }
     return;
   }
 
-  await ptt.login(username, password ?? '', vscode.workspace.getConfiguration().get('kickLogin'));
-  const { login } = ptt.state;
-  if (login) {
+  const attemptLogin = async (user: string, pass: string): Promise<boolean> => {
+    try {
+      const kick = Boolean(vscode.workspace.getConfiguration().get('kickLogin') ?? true);
+      const loginPromise = ptt.login(user, pass ?? '', kick);
+      const timeoutPromise = new Promise<boolean>((_, reject) =>
+        setTimeout(() => reject(new Error('Login timeout')), 15000)
+      );
+      await Promise.race([loginPromise, timeoutPromise]);
+      return ptt.state?.login ?? false;
+    } catch {
+      return false;
+    }
+  };
+
+  let success = await attemptLogin(username, password ?? '');
+
+  // If login failed with stored credentials during manual login, prompt the user for new credentials
+  if (!success && !isSilent) {
+    const freshUsername = await vscode.window.showInputBox({
+      placeHolder: '帳號',
+      prompt: '登入失敗，請重新輸入 PTT 登入帳號',
+      value: username || ''
+    });
+
+    if (freshUsername) {
+      let freshPassword = '';
+      if (freshUsername.toLowerCase() !== 'guest') {
+        const inputPass = await vscode.window.showInputBox({
+          placeHolder: '密碼',
+          prompt: '請輸入 PTT 登入密碼',
+          password: true
+        });
+        if (inputPass !== undefined) {
+          freshPassword = inputPass;
+        } else {
+          return;
+        }
+      }
+      username = freshUsername;
+      password = freshPassword;
+      success = await attemptLogin(username, password);
+    }
+  }
+
+  if (success) {
     ctx.globalState.update('username', username);
     ctx.globalState.update('password', password ?? '');
+    updateLoginContext();
     pttProvider?.refresh();
-    if (!silent) {
+    if (!isSilent) {
       vscode.window.showInformationMessage(`以 ${username} 登入成功！`);
     }
   } else {
-    if (!silent) {
+    updateLoginContext();
+    if (!isSilent) {
       vscode.window.showWarningMessage('登入失敗 QQ');
     }
   }
@@ -118,6 +206,9 @@ export async function login (silent = false) {
 
 async function pickFavorite (): Promise<string | null> {
   await login();
+  if (!checkLogin()) {
+    return null;
+  }
 
   const favorites:FavoriteBoardItem[] = await ptt.getFavorite();
   // TODO: exclude subscribed boards
@@ -152,26 +243,27 @@ export async function activate(context: vscode.ExtensionContext) {
   pttProvider = new PttTreeDataProvider(ptt, ctx);
   vscode.window.registerTreeDataProvider('pttTree', pttProvider);
 
-  const provider = new ContentProvider(ptt);
-  context.subscriptions.push(vscode.workspace.registerTextDocumentContentProvider(ContentProvider.scheme, provider));
+  contentProvider = new ContentProvider(ptt);
+  context.subscriptions.push(vscode.workspace.registerTextDocumentContentProvider(ContentProvider.scheme, contentProvider));
 
-  context.subscriptions.push(vscode.commands.registerCommand('ptt.login', login));
+  updateLoginContext();
+
+  context.subscriptions.push(vscode.commands.registerCommand('ptt.login', () => login(false)));
   context.subscriptions.push(vscode.commands.registerCommand('ptt.logout', async () => {
-    if (!checkLogin()) {
-      return;
-    }
-
     const res = await vscode.window.showInformationMessage('你確定要登出嗎？登出會一併清除您的訂閱看板', '好', '算了');
     if (res === '好') {
       ctx.globalState.update('username', null);
       ctx.globalState.update('password', null);
       ctx.globalState.update('boardlist', []);
-      pttProvider.refresh();
+      pttProvider?.refresh();
 
-      // logout
-      await ptt.send(`${key.ArrowLeft.repeat(10)}${key.ArrowRight}y${key.Enter}`);
-      // !FIXME: should be fixed in upstream  ptt-client library
-      ptt._state.login = false;
+      if (checkLogin()) {
+        // logout
+        await ptt.send(`${key.ArrowLeft.repeat(10)}${key.ArrowRight}y${key.Enter}`);
+        // !FIXME: should be fixed in upstream  ptt-client library
+        ptt._state.login = false;
+      }
+      updateLoginContext();
 
       vscode.window.showInformationMessage('已登出 PTT');
     }
@@ -218,13 +310,16 @@ export async function activate(context: vscode.ExtensionContext) {
   }));
 
   context.subscriptions.push(vscode.commands.registerCommand('ptt.refresh-article', () => {
+    if (!checkLogin()) {
+      return;
+    }
     ptt.resetSearchCondition();
     const boards = store.getBoardNames();
     boards.forEach(async (boardname: string) => {
       store.release(boardname);
       const articles = await ptt.getArticles(boardname);
       store.add(boardname, articles);
-      pttProvider.refresh();
+      pttProvider?.refresh();
     });
   }));
 

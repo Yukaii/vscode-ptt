@@ -33,5 +33,6 @@ export interface IPttClient {
   setSearchCondition(type: string, criteria: string): void;
   resetSearchCondition(): void;
   send(keys: string): Promise<any>;
+  on?(event: string, listener: (...args: any[]) => void): any;
   once?(event: string, listener: (...args: any[]) => void): any;
 }

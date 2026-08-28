@@ -26,7 +26,8 @@ export const mockVscode = {
     }
   },
   commands: {
-    registerCommand: () => ({ dispose: () => {} })
+    registerCommand: () => ({ dispose: () => {} }),
+    executeCommand: async (..._args: any[]): Promise<any> => undefined
   },
   window: {
     showInformationMessage: async (..._args: any[]): Promise<any> => undefined,

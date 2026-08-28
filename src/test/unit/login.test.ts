@@ -5,6 +5,7 @@ import {
   getLoginCredential,
   checkLogin,
   setPttClient,
+  setPttClientFactory,
   setExtensionContext,
   setPttProvider
 } from '../../extension';
@@ -45,6 +46,7 @@ describe('Login Unit Tests', () => {
     };
 
     setPttClient(mockPtt);
+    setPttClientFactory(() => Promise.resolve(mockPtt));
     setExtensionContext(mockContext);
     setPttProvider(mockProvider);
   });
@@ -209,6 +211,91 @@ describe('Login Unit Tests', () => {
 
       assert.strictEqual(checkLogin(), true);
       assert.strictEqual(messages.info.length, 0); // silent = true so no info popup
+    });
+
+    it('treats non-boolean arguments as manual login (e.g. from VS Code command)', async () => {
+      mockVscode.window.showInputBox = async (options: any) => {
+        if (options.placeHolder === '帳號') {
+          return 'commanduser';
+        }
+        if (options.placeHolder === '密碼') {
+          return 'commandpass';
+        }
+        return undefined;
+      };
+
+      await (login as any)({});
+
+      assert.strictEqual(checkLogin(), true);
+      assert.strictEqual(globalStore['username'], 'commanduser');
+      assert.strictEqual(globalStore['password'], 'commandpass');
+    });
+
+    it('prompts for new credentials if stored credentials fail during manual login', async () => {
+      globalStore['username'] = 'olduser';
+      globalStore['password'] = 'wrongpass';
+
+      // First attempt with olduser will fail
+      mockPtt.login = async (user?: string, pass?: string) => {
+        if (user === 'correctuser' && pass === 'correctpass') {
+          mockPtt.state.login = true;
+          return true;
+        }
+        mockPtt.state.login = false;
+        return false;
+      };
+
+      mockVscode.window.showInputBox = async (options: any) => {
+        if (options.placeHolder === '帳號') {
+          return 'correctuser';
+        }
+        if (options.placeHolder === '密碼') {
+          return 'correctpass';
+        }
+        return undefined;
+      };
+
+      await login(false);
+
+      assert.strictEqual(checkLogin(), true);
+      assert.strictEqual(globalStore['username'], 'correctuser');
+      assert.strictEqual(globalStore['password'], 'correctpass');
+      assert.ok(messages.info.some(msg => msg.includes('correctuser 登入成功')));
+    });
+
+    it('shows warning when connection to PTT server is unavailable', async () => {
+      mockPtt.state.connect = false;
+
+      await login(false);
+
+      assert.strictEqual(checkLogin(), false);
+      assert.ok(messages.warning.some(msg => msg.includes('無法連線至 PTT 伺服器')));
+    });
+
+    it('updates ptt:loggedIn context key on login state change', async () => {
+      let contextKey = '';
+      let contextValue: any = null;
+      mockVscode.commands.executeCommand = async (cmd: string, key: string, val: any) => {
+        if (cmd === 'setContext') {
+          contextKey = key;
+          contextValue = val;
+        }
+      };
+
+      mockVscode.window.showInputBox = async (options: any) => {
+        if (options.placeHolder === '帳號') {
+          return 'contextuser';
+        }
+        if (options.placeHolder === '密碼') {
+          return 'contextpass';
+        }
+        return undefined;
+      };
+
+      await login(false);
+
+      assert.strictEqual(contextKey, 'ptt:loggedIn');
+      assert.strictEqual(contextValue, true);
     });
   });
 });
