@@ -19,4 +19,14 @@ suite('Extension Integration Tests', () => {
     assert.ok(commands.includes('ptt.favorite-board'), 'ptt.favorite-board should be registered');
     assert.ok(commands.includes('ptt.refresh-article'), 'ptt.refresh-article should be registered');
   });
+
+  test('Can execute ptt.refresh-article command without error', async () => {
+    const ext = vscode.extensions.getExtension('Yukai.vscode-ptt');
+    if (ext && !ext.isActive) {
+      await ext.activate();
+    }
+
+    // Should execute cleanly
+    await vscode.commands.executeCommand('ptt.refresh-article');
+  });
 });

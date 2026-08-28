@@ -1,13 +1,12 @@
-'use strict';
-
 import * as vscode from 'vscode';
+import { IPttClient } from './types';
 
 export default class Provider implements vscode.TextDocumentContentProvider {
   static scheme = 'ptt';
 
   private _subscriptions: vscode.Disposable;
 
-  constructor (private ptt: any) {}
+  constructor (private ptt: IPttClient) {}
 
 	dispose() {
 		if (this._subscriptions) {

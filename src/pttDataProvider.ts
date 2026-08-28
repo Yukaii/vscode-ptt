@@ -1,11 +1,11 @@
 import * as vscode from 'vscode';
-
+import { IPttClient } from './types';
 import store from './store';
 
 type Node = Board | Article | LoadMoreArticle;
 
 export class PttTreeDataProvider implements vscode.TreeDataProvider<Node> {
-  constructor (private ptt, private ctx: vscode.ExtensionContext) {}
+  constructor (private ptt: IPttClient, private ctx: vscode.ExtensionContext) {}
 
 	private _onDidChangeTreeData: vscode.EventEmitter<Board | undefined> = new vscode.EventEmitter<Board | undefined>();
   readonly onDidChangeTreeData: vscode.Event<Board | undefined> = this._onDidChangeTreeData.event;
@@ -35,9 +35,9 @@ export interface IChildren{
 export class ArticleChildren implements IChildren
 {
   element: Node;
-  ptt: any;
+  ptt: IPttClient;
 
-  constructor(element: Node, ptt: any)
+  constructor(element: Node, ptt: IPttClient)
   {
     this.element = element;
     this.ptt = ptt;
@@ -102,10 +102,10 @@ export class StartupChildren implements IChildren
 export class ChildrenFactory
 {
   element: Node;
-  ptt: any;
+  ptt: IPttClient;
   ctx: vscode.ExtensionContext;
 
-  constructor(element: Node, ptt: any, ctx: vscode.ExtensionContext)
+  constructor(element: Node, ptt: IPttClient, ctx: vscode.ExtensionContext)
   {
     this.element = element;
     this.ptt = ptt;

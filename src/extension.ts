@@ -8,24 +8,15 @@ import key from 'ptt-client/dist/utils/keymap';
 import { PttTreeDataProvider, Board } from './pttDataProvider';
 import ContentProvider from './provider';
 import store, { ArticleListItem } from './store';
+import { IPttClient, FavoriteBoardItem } from './types';
 
-let ptt: any;
+export { FavoriteBoardItem } from './types';
+
+let ptt: IPttClient;
 let ctx: vscode.ExtensionContext;
 let pttProvider: PttTreeDataProvider;
 
-export interface FavoriteBoardItem{
-  bn: string;
-  read: string;
-  boardname: string;
-  category: string;
-  title: string;
-  users: string;
-  admin: string;
-  folder: boolean;
-  divider: boolean;
-}
-
-function intializePttClient (timeoutMs = 5000) {
+function intializePttClient (timeoutMs = 5000): Promise<IPttClient> {
   return new Promise(resolve => {
     const client = new PTT({ origin: 'app://vscode-ptt' });
     const timer = setTimeout(() => {
@@ -46,9 +37,9 @@ function checkLogin () {
   return ptt?.state?.login ?? false;
 }
 
-async function getLoginCredential (silent = false) {
-  let username = ctx.globalState.get('username');
-  let password = ctx.globalState.get('password');
+async function getLoginCredential (silent = false): Promise<{ username?: string; password?: string }> {
+  let username = ctx.globalState.get<string>('username');
+  let password = ctx.globalState.get<string>('password');
 
   if ((username && password) || silent) {
     return { username, password };
