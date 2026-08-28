@@ -10,6 +10,7 @@ import { PttTreeViewController, getBoardNameFromItem } from './views/PttTreeView
 import ContentProvider from './provider';
 import store, { type ArticleListItem } from './store';
 import type { IPttClient, FavoriteBoardItem } from './types';
+import logger from './logger';
 
 export type { FavoriteBoardItem } from './types';
 
@@ -74,7 +75,6 @@ export function wrapPttWithQueue(client: IPttClient): IPttClient {
     'getArticles',
     'getArticle',
     'enterBoard',
-    'send',
     'login',
     'logout'
   ]);
@@ -336,6 +336,14 @@ function setSearchCondition(type: string, criteria: string): void
 
 export async function activate(context: vscode.ExtensionContext) {
   ctx = context;
+  logger.init();
+  logger.log('Extension activating...');
+
+  const persistedFavorites = ctx.globalState.get<FavoriteBoardItem[]>('cachedFavorites');
+  if (persistedFavorites && persistedFavorites.length > 0) {
+    store.setFavorites(persistedFavorites);
+    logger.log(`Loaded ${persistedFavorites.length} cached favorites from persistent state.`);
+  }
 
   if (!ptt) {
     const initialClient = await intializePttClient();
@@ -370,13 +378,12 @@ export async function activate(context: vscode.ExtensionContext) {
       ctx.globalState.update('username', null);
       ctx.globalState.update('password', null);
       ctx.globalState.update('boardlist', []);
+      ctx.globalState.update('cachedFavorites', []);
       store.clearAll();
       refreshTreeView();
 
       if (checkLogin()) {
-        // logout
         await ptt.send(`${key.ArrowLeft.repeat(10)}${key.ArrowRight}y${key.Enter}`);
-        // !FIXME: should be fixed in upstream  ptt-client library
         ptt._state.login = false;
       }
       updateLoginContext();
@@ -414,6 +421,7 @@ export async function activate(context: vscode.ExtensionContext) {
   }));
 
   context.subscriptions.push(vscode.commands.registerCommand('ptt.show-article', async (sn, boardname) => {
+    logger.log(`[ShowArticle] Opening /${boardname}/${sn}.ptt`);
     const uri = vscode.Uri.from({
       scheme: ContentProvider.scheme,
       path: `/${boardname}/${sn}.ptt`
@@ -439,6 +447,7 @@ export async function activate(context: vscode.ExtensionContext) {
     }
     const specificBoard = getBoardNameFromItem(board);
     if (specificBoard) {
+      logger.log(`[Refresh] Refreshing board: ${specificBoard}`);
       contentProvider?.clearCache(specificBoard);
       store.release(specificBoard);
       const articles = await ptt.getArticles(specificBoard);
@@ -447,8 +456,10 @@ export async function activate(context: vscode.ExtensionContext) {
       return;
     }
 
+    logger.log('[Refresh] Refreshing all boards and favorites...');
     contentProvider?.clearCache();
     store.clearFavorites();
+    ctx.globalState.update('cachedFavorites', []);
     ptt.resetSearchCondition();
     const boards = store.getBoardNames();
     for (const boardname of boards) {
@@ -460,19 +471,30 @@ export async function activate(context: vscode.ExtensionContext) {
   }));
 
   context.subscriptions.push(vscode.commands.registerCommand('ptt.load-more-article', async (boardnameOrItem: string | unknown) => {
-    const boardname = getBoardNameFromItem(boardnameOrItem) || (typeof boardnameOrItem === 'string' ? boardnameOrItem : undefined);
+    const boardname = typeof boardnameOrItem === 'string'
+      ? boardnameOrItem
+      : getBoardNameFromItem(boardnameOrItem);
+
+    logger.log('[LoadMore] Invoked with argument:', { raw: boardnameOrItem, resolvedBoard: boardname });
     if (!boardname) {
+      logger.error('[LoadMore] Could not resolve board name from:', boardnameOrItem);
       return;
     }
     const lastSn = store.lastSn(boardname);
+    logger.log(`[LoadMore] Current lastSn for ${boardname} is ${lastSn}`);
+
     if (lastSn <= 1 && !store.isEmpty(boardname)) {
       vscode.window.showInformationMessage('已載入此看板所有歷史文章');
       return;
     }
     const targetSn = lastSn > 0 ? Math.max(lastSn - 1, 1) : 0;
+    logger.log(`[LoadMore] Fetching older articles for ${boardname} (target cursor SN: ${targetSn})...`);
     const articles = await ptt.getArticles(boardname, targetSn);
+    logger.log(`[LoadMore] Received ${articles?.length || 0} older articles for ${boardname}`);
+
     if (articles?.length > 0) {
       store.add(boardname, articles);
+      logger.log(`[LoadMore] Total articles now in store for ${boardname}: ${store.asList(boardname).length}`);
     }
     refreshTreeView();
   }));

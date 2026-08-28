@@ -236,10 +236,22 @@ export const BoardNode: FC<{
 
 export const FavoriteNode: FC<{
   ptt: IPttClient;
+  context: vscode.ExtensionContext;
   isLoggedIn: boolean;
   version?: number;
-}> = ({ ptt, isLoggedIn, version }) => {
-  const [favorites, setFavorites] = useState<FavoriteBoardItem[]>(() => store.getFavorites());
+}> = ({ ptt, context, isLoggedIn, version }) => {
+  const [favorites, setFavorites] = useState<FavoriteBoardItem[]>(() => {
+    const inStore = store.getFavorites();
+    if (inStore && inStore.length > 0) {
+      return inStore;
+    }
+    const persisted = context?.globalState?.get<FavoriteBoardItem[]>('cachedFavorites');
+    if (persisted && persisted.length > 0) {
+      store.setFavorites(persisted);
+      return persisted;
+    }
+    return [];
+  });
   const [loading, setLoading] = useState(() => isLoggedIn && !store.hasFavorites());
   const [error, setError] = useState<string | null>(null);
 
@@ -260,6 +272,7 @@ export const FavoriteNode: FC<{
         item => !item.divider && Boolean(item.boardname?.trim()) && /^[A-Za-z0-9_.-]+$/.test(item.boardname.trim())
       );
       store.setFavorites(validFavorites);
+      context?.globalState?.update('cachedFavorites', validFavorites);
       setFavorites(validFavorites);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : '載入我的最愛失敗';
@@ -267,7 +280,7 @@ export const FavoriteNode: FC<{
     } finally {
       setLoading(false);
     }
-  }, [ptt, isLoggedIn]);
+  }, [ptt, isLoggedIn, context]);
 
   useEffect(() => {
     if (isLoggedIn && ptt?.state?.login) {
@@ -356,6 +369,7 @@ export const PttTreeView: FC<PttTreeViewProps> = ({ ptt, context, isLoggedIn, ve
     <>
       <FavoriteNode
         ptt={ptt}
+        context={context}
         isLoggedIn={isLoggedIn}
         version={version}
       />

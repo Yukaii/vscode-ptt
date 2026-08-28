@@ -413,6 +413,7 @@ export class Bot extends EventEmitter {
       if (cleanOffset > 0) {
         cleanOffset = Math.max(cleanOffset - 9, 1);
         await this.send(`${keymap.End}${keymap.End}${cleanOffset}${keymap.Enter}`);
+        await sleep(200);
       }
 
       const { getLine } = this;

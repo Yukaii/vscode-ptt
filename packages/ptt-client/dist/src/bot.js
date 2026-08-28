@@ -345,6 +345,7 @@ class Bot extends eventemitter3_1.default {
             if (cleanOffset > 0) {
                 cleanOffset = Math.max(cleanOffset - 9, 1);
                 await this.send(`${keymap_1.default.End}${keymap_1.default.End}${cleanOffset}${keymap_1.default.Enter}`);
+                await sleep(200);
             }
             const { getLine } = this;
             const articles = [];
