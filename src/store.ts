@@ -49,6 +49,10 @@ class ArticleStore {
     return this.asList(boardname).length === 0;
   }
 
+  getBoardNames () {
+    return Object.keys(this.articleStore);
+  }
+
 }
 
 export default new ArticleStore();
