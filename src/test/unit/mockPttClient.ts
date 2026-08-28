@@ -2,8 +2,9 @@ import { IPttClient, FavoriteBoardItem, PttArticleDetail, PttClientState } from 
 import { ArticleListItem } from '../../store';
 
 export class MockPttClient implements IPttClient {
-  state: PttClientState = { login: false };
+  state: PttClientState = { login: false, connect: true };
   _state?: PttClientState = this.state;
+  private listeners: Record<string, ((...args: any[]) => void)[]> = {};
 
   public searchCondition: { type?: string; criteria?: string } | null = null;
   public sentKeys: string[] = [];
@@ -13,6 +14,19 @@ export class MockPttClient implements IPttClient {
 
   constructor(initialLogin = false) {
     this.state.login = initialLogin;
+    this.state.connect = true;
+  }
+
+  once(event: string, listener: (...args: any[]) => void) {
+    this.listeners[event] = this.listeners[event] || [];
+    this.listeners[event].push(listener);
+    return this;
+  }
+
+  emit(event: string, ...args: any[]) {
+    const list = this.listeners[event] || [];
+    this.listeners[event] = [];
+    list.forEach(fn => fn(...args));
   }
 
   async login(username?: string, password?: string, _kickLogin?: boolean): Promise<boolean> {

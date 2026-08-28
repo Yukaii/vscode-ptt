@@ -7,6 +7,10 @@ type Node = Board | Article | LoadMoreArticle;
 export class PttTreeDataProvider implements vscode.TreeDataProvider<Node> {
   constructor (private ptt: IPttClient, private ctx: vscode.ExtensionContext) {}
 
+  setPtt(ptt: IPttClient) {
+    this.ptt = ptt;
+  }
+
 	private _onDidChangeTreeData: vscode.EventEmitter<Board | undefined> = new vscode.EventEmitter<Board | undefined>();
   readonly onDidChangeTreeData: vscode.Event<Board | undefined> = this._onDidChangeTreeData.event;
 
