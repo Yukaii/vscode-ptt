@@ -1,8 +1,8 @@
 import { ArticleListItem } from './store';
 
 export interface FavoriteBoardItem {
-  bn: string;
-  read: string;
+  bn: string | number;
+  read: string | boolean;
   boardname: string;
   category: string;
   title: string;

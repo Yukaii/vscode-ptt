@@ -172,13 +172,13 @@
   "packageManager": "pnpm@12.0.0",
   "scripts": {
     "vscode:prepublish": "pnpm compile",
-    "compile": "tsc -p ./",
-    "cleanAndCompile": "tsc --build --clean && tsc -p ./",
+    "compile": "pnpm --filter ptt-client build && tsc -p ./",
+    "cleanAndCompile": "tsc --build --clean && pnpm --filter ptt-client build && tsc -p ./",
     "watch": "tsc -watch -p ./",
     "lint": "eslint src",
     "test:unit": "mocha --require ./out/test/unit/setup.js ./out/test/unit/**/*.test.js",
     "test:integration": "vscode-test",
-    "test": "pnpm compile && pnpm test:unit"
+    "test": "pnpm compile && pnpm test:unit && pnpm --filter ptt-client test"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
@@ -201,10 +201,7 @@
   },
   "dependencies": {
     "@hackmd/react-vsc-treeview": "^0.2.5",
-    "ptt-client": "^0.8.1",
+    "ptt-client": "workspace:*",
     "react": "^18.3.1"
-  },
-  "overrides": {
-    "terminal.js": "1.0.10"
   }
 }

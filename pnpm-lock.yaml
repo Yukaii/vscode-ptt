@@ -105,13 +105,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-overrides:
-  terminal.js: 1.0.10
-
-patchedDependencies:
-  ptt-client: f9971f103f9627997d43eaa3023bdff829fd0efbd87a2a5fbb93f76d9e2a6521
-  terminal.js: 1412dc03cf1253124f4e048ab0c1ed4ea904d6ea0915cf1a2f92661641036798
-
 importers:
 
   .:
@@ -120,8 +113,8 @@ importers:
         specifier: ^0.2.5
         version: 0.2.5
       ptt-client:
-        specifier: ^0.8.1
-        version: 0.8.1(patch_hash=f9971f103f9627997d43eaa3023bdff829fd0efbd87a2a5fbb93f76d9e2a6521)
+        specifier: workspace:*
+        version: link:packages/ptt-client
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -178,11 +171,38 @@ importers:
         specifier: ^8.16.0
         version: 8.21.3
 
-packages:
+  packages/ptt-client:
+    dependencies:
+      eventemitter3:
+        specifier: ^5.0.1
+        version: 5.0.4
+      uao-js:
+        specifier: ^1.0.1
+        version: 1.0.1
+      wcwidth:
+        specifier: ^1.0.1
+        version: 1.0.1
+      ws:
+        specifier: ^8.18.0
+        version: 8.21.3
+    devDependencies:
+      '@types/mocha':
+        specifier: ^10.0.6
+        version: 10.0.10
+      '@types/node':
+        specifier: ^20.11.24
+        version: 20.19.43
+      '@types/ws':
+        specifier: ^8.5.10
+        version: 8.18.1
+      mocha:
+        specifier: ^10.3.0
+        version: 10.8.2
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
 
-  '@babel/runtime@7.29.7':
-    resolution: {integrity: sha512-Nq8OhGWiZIZGV6hLHoyAKLLcJihP/xFeBMGJoUrxTX2psI8dCifzLhZISFb+VWS3wFMRDmCGw5R+dOySCqPLhw==}
-    engines: {node: '>=6.9.0'}
+packages:
 
   '@bcoe/v8-coverage@1.0.2':
     resolution: {integrity: sha512-6zABk/ECA/QYSCQ1NGiVwwbQerUCZ+TQbp64Q3AgmfNvurHH0j8TtXa1qbShXA6qqkpAj4V5W8pP6mLe1mcMqA==}
@@ -624,8 +644,8 @@ packages:
     resolution: {integrity: sha512-kVscqXk4OCp68SZ0dkgEKVi6/8ij300KBWTJq32P/dYeWTSwK41WyTxalN1eRmA5Z9UU/LX9D7FWSmV9SAYx6g==}
     engines: {node: '>=0.10.0'}
 
-  eventemitter3@4.0.7:
-    resolution: {integrity: sha512-8guHBZCwKnFhYdHr2ysuRWErTwhoN2X8XELRlrRwpmfeY2jjuUN4taQMsULKUVo1K4DvZl+0pgfyoysHxvmvEw==}
+  eventemitter3@5.0.4:
+    resolution: {integrity: sha512-mlsTRyGaPBjPedk6Bvw+aqbsXDtoAyAzm5MO7JgU+yVRyMQ5O8bD4Kcci7BS85f93veegeCPkL8R4GLClnjLFw==}
 
   fast-deep-equal@3.1.3:
     resolution: {integrity: sha512-f3qQ9oQy9j2AhBe/H9VC91wLmKBCCU/gDOnKNAYG5hswO7BLKj09Hc5HYNz9cGI++xlpDCIgDaitVs03ATR84Q==}
@@ -996,9 +1016,6 @@ packages:
   process-nextick-args@2.0.1:
     resolution: {integrity: sha512-3ouUOpQhtgrbOa17J7+uxOTpITYWaGP7/AhoR3+A+/1e9skrzelGi/dXzEYyvbxubEF6Wn2ypscTKiKJFFn1ag==}
 
-  ptt-client@0.8.1:
-    resolution: {integrity: sha512-NgxNMn4jLqjnuEkAQSAupbljUOTUotFuzHtnac22bY8b0heq8DNRzMtZSeqNJ32/DaaY7hwn0MbbkqhMUMQmZA==}
-
   punycode@2.3.1:
     resolution: {integrity: sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==}
     engines: {node: '>=6'}
@@ -1075,9 +1092,6 @@ packages:
     resolution: {integrity: sha512-bzyZ1e88w9O1iNJbKnOlvYTrWPDl46O1bG0D3XInv+9tkPrxrN8jUUTiFlDkkmKWgn1M6CfIA13SuGqOa9Korw==}
     engines: {node: '>=14'}
 
-  sleep-promise@8.0.1:
-    resolution: {integrity: sha512-nfwyX+G1dsx2R1DMMKWLpNxuHMOCL7JIRBUw0fl7Z4nZ1YZK0apZuGY8MDexn0HDZzgbERgj/CrNtsYpo/B7eA==}
-
   stdin-discarder@0.2.2:
     resolution: {integrity: sha512-UhDfHmA92YAlNnCfhmq0VeNL5bDbiZGg7sZ2IvPsXubGkiNa9EC+tUTsjBRsYUAz87btI6/1wf4XoVvQ3uRnmQ==}
     engines: {node: '>=18'}
@@ -1128,9 +1142,6 @@ packages:
   tapable@2.3.3:
     resolution: {integrity: sha512-uxc/zpqFg6x7C8vOE7lh6Lbda8eEL9zmVm/PLeTPBRhh1xCgdWaQ+J1CUieGpIfm2HdtsUpRv+HshiasBMcc6A==}
     engines: {node: '>=6'}
-
-  terminal.js@1.0.10:
-    resolution: {integrity: sha512-g7PYZyKkzaguX04RibJKeCqU1I8IJDwP4UmKJLedmNjDgsNScvORWTWRRg3Q/4aLKvPphug8t/xUbWjtqpiyxA==}
 
   test-exclude@8.0.0:
     resolution: {integrity: sha512-ZOffsNrXYggvU1mDGHk54I96r26P8SyMjO5slMKSc7+IWmtB/MQKnEC2fP51imB3/pT6YK5cT5E8f+Dd9KdyOQ==}
@@ -1215,18 +1226,6 @@ packages:
   wrappy@1.0.2:
     resolution: {integrity: sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ==}
 
-  ws@7.5.13:
-    resolution: {integrity: sha512-rsKI6xDBFVf4r/x8XyChGK04QR/XHroxs/jUcoWvtEZM8TPU/X/uIY9B1CsSzYws9ZJb/6bbBu7dPhFW00CAoA==}
-    engines: {node: '>=8.3.0'}
-    peerDependencies:
-      bufferutil: ^4.0.1
-      utf-8-validate: ^5.0.2
-    peerDependenciesMeta:
-      bufferutil:
-        optional: true
-      utf-8-validate:
-        optional: true
-
   ws@8.21.3:
     resolution: {integrity: sha512-201TZ/kPWxoPr/OKWjquZR1SWKXcvxdH+e1xrx89b3YbmzLMFCLfnaG1HFIgWzJOEWZ7MvpK++odZufgYR50Rw==}
     engines: {node: '>=10.0.0'}
@@ -1276,8 +1275,6 @@ packages:
     engines: {node: '>=10'}
 
 snapshots:
-
-  '@babel/runtime@7.29.7': {}
 
   '@bcoe/v8-coverage@1.0.2': {}
 
@@ -1766,7 +1763,7 @@ snapshots:
 
   esutils@2.0.3: {}
 
-  eventemitter3@4.0.7: {}
+  eventemitter3@5.0.4: {}
 
   fast-deep-equal@3.1.3: {}
 
@@ -2140,19 +2137,6 @@ snapshots:
 
   process-nextick-args@2.0.1: {}
 
-  ptt-client@0.8.1(patch_hash=f9971f103f9627997d43eaa3023bdff829fd0efbd87a2a5fbb93f76d9e2a6521):
-    dependencies:
-      '@babel/runtime': 7.29.7
-      eventemitter3: 4.0.7
-      sleep-promise: 8.0.1
-      terminal.js: 1.0.10(patch_hash=1412dc03cf1253124f4e048ab0c1ed4ea904d6ea0915cf1a2f92661641036798)
-      uao-js: 1.0.1
-      wcwidth: 1.0.1
-      ws: 7.5.13
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
-
   punycode@2.3.1: {}
 
   randombytes@2.1.0:
@@ -2220,8 +2204,6 @@ snapshots:
 
   signal-exit@4.1.0: {}
 
-  sleep-promise@8.0.1: {}
-
   stdin-discarder@0.2.2: {}
 
   string-width@4.2.3:
@@ -2272,8 +2254,6 @@ snapshots:
       has-flag: 4.0.0
 
   tapable@2.3.3: {}
-
-  terminal.js@1.0.10(patch_hash=1412dc03cf1253124f4e048ab0c1ed4ea904d6ea0915cf1a2f92661641036798): {}
 
   test-exclude@8.0.0:
     dependencies:
@@ -2360,8 +2340,6 @@ snapshots:
       strip-ansi: 7.2.0
 
   wrappy@1.0.2: {}
-
-  ws@7.5.13: {}
 
   ws@8.21.3: {}
 
