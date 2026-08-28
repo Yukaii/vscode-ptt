@@ -18,6 +18,7 @@
   },
   "license": "WTFPL",
   "activationEvents": [
+    "onFileSystem:ptt",
     "onCommand:ptt.login",
     "onCommand:ptt.logout",
     "onCommand:ptt.add-board",

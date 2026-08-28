@@ -7,10 +7,10 @@ import key from 'ptt-client/dist/utils/keymap';
 
 import { PttTreeDataProvider, Board } from './pttDataProvider';
 import ContentProvider from './provider';
-import store, { ArticleListItem } from './store';
-import { IPttClient, FavoriteBoardItem } from './types';
+import store, { type ArticleListItem } from './store';
+import type { IPttClient, FavoriteBoardItem } from './types';
 
-export { FavoriteBoardItem } from './types';
+export type { FavoriteBoardItem } from './types';
 
 let ptt: IPttClient;
 let ctx: vscode.ExtensionContext;
@@ -49,6 +49,12 @@ export function setPttClient (client: IPttClient) {
   ptt = client;
   pttProvider?.setPtt?.(client);
   contentProvider?.setPtt?.(client);
+  contentProvider?.setEnsureLogin?.(async () => {
+    if (!checkLogin()) {
+      await login(true);
+    }
+    return checkLogin();
+  });
   if (client?.on) {
     client.on('stateChange', () => updateLoginContext());
     client.on('disconnect', () => updateLoginContext());
@@ -243,8 +249,18 @@ export async function activate(context: vscode.ExtensionContext) {
   pttProvider = new PttTreeDataProvider(ptt, ctx);
   vscode.window.registerTreeDataProvider('pttTree', pttProvider);
 
-  contentProvider = new ContentProvider(ptt);
-  context.subscriptions.push(vscode.workspace.registerTextDocumentContentProvider(ContentProvider.scheme, contentProvider));
+  contentProvider = new ContentProvider(ptt, async () => {
+    if (!checkLogin()) {
+      await login(true);
+    }
+    return checkLogin();
+  });
+  context.subscriptions.push(
+    vscode.workspace.registerFileSystemProvider(ContentProvider.scheme, contentProvider, {
+      isReadonly: true,
+      isCaseSensitive: true
+    })
+  );
 
   updateLoginContext();
 
@@ -298,18 +314,13 @@ export async function activate(context: vscode.ExtensionContext) {
   }));
 
   context.subscriptions.push(vscode.commands.registerCommand('ptt.show-article', async (sn, boardname) => {
-    const doc = await vscode.workspace.openTextDocument(vscode.Uri.parse(`${ContentProvider.scheme}:${boardname}/${sn}`));
-    await vscode.languages.setTextDocumentLanguage(doc, 'ptt');
+    const uri = vscode.Uri.from({
+      scheme: ContentProvider.scheme,
+      path: `/${boardname}/${sn}.ptt`
+    });
+    const doc = await vscode.workspace.openTextDocument(uri);
     await vscode.window.showTextDocument(doc, vscode.ViewColumn.Active);
   }));
-
-  context.subscriptions.push(
-    vscode.workspace.onDidOpenTextDocument(async (doc) => {
-      if (doc.uri.scheme === ContentProvider.scheme && doc.languageId !== 'ptt') {
-        await vscode.languages.setTextDocumentLanguage(doc, 'ptt');
-      }
-    })
-  );
 
   context.subscriptions.push(vscode.commands.registerCommand('ptt.remove-board', (board: Board) => {
     const boardlist: string[] = ctx.globalState.get('boardlist') || [];
@@ -322,6 +333,7 @@ export async function activate(context: vscode.ExtensionContext) {
     if (!checkLogin()) {
       return;
     }
+    contentProvider?.clearCache();
     ptt.resetSearchCondition();
     const boards = store.getBoardNames();
     boards.forEach(async (boardname: string) => {
@@ -340,6 +352,7 @@ export async function activate(context: vscode.ExtensionContext) {
   }));
 
   context.subscriptions.push(vscode.commands.registerCommand('ptt.release-board', async (board: Board) => {
+    contentProvider?.clearCache(board.boardname);
     store.release(board.boardname);
     pttProvider.refresh();
   }));
