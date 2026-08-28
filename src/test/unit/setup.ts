@@ -29,14 +29,14 @@ export const mockVscode = {
     registerCommand: () => ({ dispose: () => {} })
   },
   window: {
-    showInformationMessage: async () => undefined,
-    showWarningMessage: async () => undefined,
-    showInputBox: async () => undefined,
-    showQuickPick: async () => undefined
+    showInformationMessage: async (..._args: any[]): Promise<any> => undefined,
+    showWarningMessage: async (..._args: any[]): Promise<any> => undefined,
+    showInputBox: async (..._args: any[]): Promise<any> => undefined,
+    showQuickPick: async (..._args: any[]): Promise<any> => undefined
   },
   workspace: {
-    getConfiguration: () => ({
-      get: () => undefined
+    getConfiguration: (..._args: any[]) => ({
+      get: (..._gargs: any[]) => undefined
     })
   }
 };
