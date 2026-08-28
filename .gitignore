@@ -1,4 +1,6 @@
 out
+dist
+packages/ptt-client/dist
 node_modules
 .vscode-test/
 *.vsix

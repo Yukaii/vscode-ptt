@@ -224,12 +224,9 @@ export class Bot extends EventEmitter {
 
   private async _checkLogin(kick: boolean): Promise<boolean | null> {
     const { getLine } = this;
+    const screenBottom = [getLine(19).str, getLine(20).str, getLine(21).str, getLine(22).str, getLine(23).str].join(' ');
 
-    if (getLine(21).str.includes('密碼不對或無此帳號')) {
-      this.emit('login.failed');
-      return false;
-    }
-    if (getLine(23).str.includes('請稍後再試')) {
+    if (screenBottom.includes('密碼不對') || screenBottom.includes('無此帳號') || screenBottom.includes('請稍後再試')) {
       this.emit('login.failed');
       return false;
     }
