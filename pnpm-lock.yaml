@@ -109,7 +109,7 @@ overrides:
   terminal.js: 1.0.10
 
 patchedDependencies:
-  ptt-client: 9969f26c17109433cde6609868ae814fbc1e47cdaea63164371b396f2cff819a
+  ptt-client: 4cf26d87904fcbf122391cf4f53b818cd555a80d68f55f11af6b64101eab200b
   terminal.js: 1412dc03cf1253124f4e048ab0c1ed4ea904d6ea0915cf1a2f92661641036798
 
 importers:
@@ -121,7 +121,7 @@ importers:
         version: 0.2.5
       ptt-client:
         specifier: ^0.8.1
-        version: 0.8.1(patch_hash=9969f26c17109433cde6609868ae814fbc1e47cdaea63164371b396f2cff819a)
+        version: 0.8.1(patch_hash=4cf26d87904fcbf122391cf4f53b818cd555a80d68f55f11af6b64101eab200b)
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -2140,7 +2140,7 @@ snapshots:
 
   process-nextick-args@2.0.1: {}
 
-  ptt-client@0.8.1(patch_hash=9969f26c17109433cde6609868ae814fbc1e47cdaea63164371b396f2cff819a):
+  ptt-client@0.8.1(patch_hash=4cf26d87904fcbf122391cf4f53b818cd555a80d68f55f11af6b64101eab200b):
     dependencies:
       '@babel/runtime': 7.29.7
       eventemitter3: 4.0.7

@@ -1,91 +1,8 @@
 diff --git a/dist/sites/ptt/bot.js b/dist/sites/ptt/bot.js
-index 0cb0b93c5d1039953bd006556e2edb58deb765fa..b64bb22d8da02bb12b31896d00d5eeef98bb6f1d 100644
+index 0cb0b93c5d1039953bd006556e2edb58deb765fa..4daeee285d2f79498ab3137f71cfda0019240e59 100644
 --- a/dist/sites/ptt/bot.js
 +++ b/dist/sites/ptt/bot.js
-@@ -506,16 +506,16 @@ function (_EventEmitter) {
-                 break;
- 
-               case 21:
--                if (!getLine(23).str.includes("按任意鍵繼續")) {
-+                if (!getLine(23).str.includes("按任意鍵繼續") && !getLine(22).str.includes("按任意鍵繼續")) {
-                   _context6.next = 26;
-                   break;
-                 }
- 
-                 _context6.next = 24;
--                return this.send("".concat(_keymap["default"].Enter));
-+                return this.send(" ");
- 
-               case 24:
--                _context6.next = 43;
-+                _context6.next = 47;
-                 break;
- 
-               case 26:
-@@ -528,7 +528,7 @@ function (_EventEmitter) {
-                 return this.send("".concat(_keymap["default"].Backspace, "y").concat(_keymap["default"].Enter));
- 
-               case 29:
--                _context6.next = 43;
-+                _context6.next = 47;
-                 break;
- 
-               case 31:
-@@ -541,23 +541,48 @@ function (_EventEmitter) {
-                 return this.send("".concat(_keymap["default"].Backspace, "y").concat(_keymap["default"].Enter));
- 
-               case 34:
--                _context6.next = 43;
-+                _context6.next = 47;
-                 break;
- 
-               case 36:
--                if (!getLine(23).str.includes("我是")) {
-+                if (!getLine(23).str.includes("我是") && !getLine(0).str.includes("主功能表") && !getLine(1).str.includes("主功能表")) {
-+                  _context6.next = 45;
-+                  break;
-+                }
-+
-+                _attempt = 0;
-+
-+              case 38:
-+                if (!(_attempt < 5)) {
-+                  _context6.next = 44;
-+                  break;
-+                }
-+
-+                if (!getLine(0).str.includes("主功能表") && !getLine(1).str.includes("主功能表") && !getLine(2).str.includes("主功能表")) {
-                   _context6.next = 41;
-                   break;
-                 }
- 
--                this.emit('login.success');
--                return _context6.abrupt("return", true);
-+                return _context6.abrupt("break", 44);
- 
-               case 41:
-                 _context6.next = 43;
--                return this.send("q");
-+                return this.send(" ");
- 
-               case 43:
-+                _attempt++;
-+                _context6.next = 38;
-+                break;
-+
-+              case 44:
-+                this.emit('login.success');
-+                return _context6.abrupt("return", true);
-+
-+              case 45:
-+                _context6.next = 47;
-+                return this.send("q");
-+
-+              case 47:
-                 return _context6.abrupt("return", null);
- 
-               case 44:
-@@ -795,10 +820,22 @@ function (_EventEmitter) {
+@@ -795,10 +795,22 @@ function (_EventEmitter) {
          var offsets,
              getLine,
              favorites,
@@ -109,7 +26,7 @@ index 0cb0b93c5d1039953bd006556e2edb58deb765fa..b64bb22d8da02bb12b31896d00d5eeef
              _args9 = arguments;
          return _regenerator["default"].wrap(function _callee9$(_context9) {
            while (1) {
-@@ -818,113 +855,144 @@ function (_EventEmitter) {
+@@ -818,113 +830,127 @@ function (_EventEmitter) {
                  return this.enterFavorite(offsets);
  
                case 5:
@@ -118,31 +35,14 @@ index 0cb0b93c5d1039953bd006556e2edb58deb765fa..b64bb22d8da02bb12b31896d00d5eeef
 +
 +              case 7:
                  getLine = this.getLine;
-+
-+                isFavScreen = getLine(0).str.includes("我的最愛") ||
-+                              getLine(0).str.includes("看板列表") ||
-+                              getLine(1).str.includes("看板名稱") ||
-+                              getLine(2).str.includes("---");
-+                if (isFavScreen) {
-+                  _context9.next = 12;
-+                  break;
-+                }
-+
-+                _context9.next = 10;
-+                return this.enterIndex();
-+
-+              case 10:
-+                return _context9.abrupt("return", []);
-+
-+              case 12:
                  favorites = [];
 +                seenKeys = new Set();
  
 -              case 7:
-+              case 14:
++              case 10:
                  if (!true) {
 -                  _context9.next = 37;
-+                  _context9.next = 49;
++                  _context9.next = 45;
                    break;
                  }
  
@@ -151,10 +51,10 @@ index 0cb0b93c5d1039953bd006556e2edb58deb765fa..b64bb22d8da02bb12b31896d00d5eeef
                  i = 3;
  
 -              case 10:
-+              case 18:
++              case 14:
                  if (!(i < 23)) {
 -                  _context9.next = 31;
-+                  _context9.next = 37;
++                  _context9.next = 33;
                    break;
                  }
  
@@ -162,13 +62,14 @@ index 0cb0b93c5d1039953bd006556e2edb58deb765fa..b64bb22d8da02bb12b31896d00d5eeef
  
                  if (!(line.trim() === '')) {
 -                  _context9.next = 15;
-+                  _context9.next = 23;
++                  _context9.next = 19;
                    break;
                  }
  
                  stopLoop = true;
 -                return _context9.abrupt("break", 31);
--
++                return _context9.abrupt("break", 33);
+ 
 -              case 15:
 -                favorite = {
 -                  bn: (0, _char.substrWidth)('dbcs', line, 3, 4).trim() | 0,
@@ -181,11 +82,10 @@ index 0cb0b93c5d1039953bd006556e2edb58deb765fa..b64bb22d8da02bb12b31896d00d5eeef
 -                  folder: false,
 -                  divider: false
 -                };
-+                return _context9.abrupt("break", 37);
- 
+-
 -                if (!(favorite.bn !== favorites.length + 1)) {
 -                  _context9.next = 19;
-+              case 23:
++              case 19:
 +                bn = (0, _char.substrWidth)('dbcs', line, 3, 4).trim() | 0;
 +                boardname = (0, _char.substrWidth)('dbcs', line, 10, 12).trim();
 +                category = (0, _char.substrWidth)('dbcs', line, 23, 4).trim();
@@ -205,8 +105,8 @@ index 0cb0b93c5d1039953bd006556e2edb58deb765fa..b64bb22d8da02bb12b31896d00d5eeef
 +                  users = '';
 +                  admin = '';
 +                  divider = true;
-+                } else if (bn <= 0) {
-+                  _context9.next = 34;
++                } else if (bn <= 0 || !/^[A-Za-z0-9_.-]+$/.test(boardname)) {
++                  _context9.next = 30;
                    break;
                  }
  
@@ -233,9 +133,9 @@ index 0cb0b93c5d1039953bd006556e2edb58deb765fa..b64bb22d8da02bb12b31896d00d5eeef
 -              case 19:
 -                _context9.t0 = favorite.boardname;
 -                _context9.next = _context9.t0 === 'MyFavFolder' ? 22 : _context9.t0 === '------------' ? 24 : 26;
-+              case 34:
++              case 30:
 +                i++;
-+                _context9.next = 18;
++                _context9.next = 14;
                  break;
  
 -              case 22:
@@ -246,9 +146,9 @@ index 0cb0b93c5d1039953bd006556e2edb58deb765fa..b64bb22d8da02bb12b31896d00d5eeef
 -                  folder: true
 -                });
 -                return _context9.abrupt("break", 27);
-+              case 37:
++              case 33:
 +                if (!stopLoop && addedInThisPage !== 0) {
-+                  _context9.next = 39;
++                  _context9.next = 35;
 +                  break;
 +                }
  
@@ -260,33 +160,33 @@ index 0cb0b93c5d1039953bd006556e2edb58deb765fa..b64bb22d8da02bb12b31896d00d5eeef
 -                  divider: true
 -                });
 -                return _context9.abrupt("break", 27);
-+                return _context9.abrupt("break", 49);
++                return _context9.abrupt("break", 45);
  
 -              case 26:
 -                return _context9.abrupt("break", 27);
-+              case 39:
++              case 35:
 +                prevTopLine = getLine(3).str;
-+                _context9.next = 42;
++                _context9.next = 38;
 +                return this.send(_keymap["default"].PgDown);
  
 -              case 27:
 -                favorites.push(favorite);
-+              case 42:
-+                _context9.next = 44;
++              case 38:
++                _context9.next = 40;
 +                return (0, _sleepPromise["default"])(200);
  
 -              case 28:
 -                i++;
 -                _context9.next = 10;
 -                break;
-+              case 44:
++              case 40:
 +                newTopLine = getLine(3).str;
  
 -              case 31:
 -                if (!stopLoop) {
 -                  _context9.next = 33;
 +                if (!(newTopLine === prevTopLine)) {
-+                  _context9.next = 47;
++                  _context9.next = 43;
                    break;
                  }
  
@@ -295,22 +195,22 @@ index 0cb0b93c5d1039953bd006556e2edb58deb765fa..b64bb22d8da02bb12b31896d00d5eeef
 -              case 33:
 -                _context9.next = 35;
 -                return this.send(_keymap["default"].PgDown);
-+                return _context9.abrupt("break", 49);
++                return _context9.abrupt("break", 45);
  
 -              case 35:
 -                _context9.next = 7;
-+              case 47:
-+                _context9.next = 14;
++              case 43:
++                _context9.next = 10;
                  break;
  
 -              case 37:
 -                _context9.next = 39;
-+              case 49:
-+                _context9.next = 51;
++              case 45:
++                _context9.next = 47;
                  return this.enterIndex();
  
 -              case 39:
-+              case 51:
++              case 47:
                  return _context9.abrupt("return", favorites);
  
 -              case 40:
@@ -318,177 +218,35 @@ index 0cb0b93c5d1039953bd006556e2edb58deb765fa..b64bb22d8da02bb12b31896d00d5eeef
                case "end":
                  return _context9.stop();
              }
-@@ -1073,17 +1141,57 @@ function (_EventEmitter) {
-       var _enterIndex = (0, _asyncToGenerator2["default"])(
-       /*#__PURE__*/
-       _regenerator["default"].mark(function _callee12() {
-+        var getLine, i;
-         return _regenerator["default"].wrap(function _callee12$(_context12) {
-           while (1) {
+@@ -1078,7 +1104,7 @@ function (_EventEmitter) {
              switch (_context12.prev = _context12.next) {
                case 0:
--                _context12.next = 2;
+                 _context12.next = 2;
 -                return this.send("".concat(_keymap["default"].ArrowLeft.repeat(10)));
-+                getLine = this.getLine;
-+                i = 0;
++                return this.send("".concat(_keymap["default"].Enter, " ").concat(_keymap["default"].ArrowLeft.repeat(10)));
  
                case 2:
-+                if (!(i < 6)) {
-+                  _context12.next = 18;
-+                  break;
-+                }
-+
-+                if (!getLine(0).str.includes("主功能表") && !getLine(1).str.includes("主功能表") && !getLine(2).str.includes("主功能表")) {
-+                  _context12.next = 6;
-+                  break;
-+                }
-+
                  return _context12.abrupt("return", true);
- 
--              case 3:
-+              case 6:
-+                if (!getLine(23).str.includes("按任意鍵繼續") && !getLine(22).str.includes("按任意鍵繼續")) {
-+                  _context12.next = 11;
-+                  break;
-+                }
-+
-+                _context12.next = 9;
-+                return this.send(" ");
-+
-+              case 9:
-+                _context12.next = 13;
-+                break;
-+
-+              case 11:
-+                _context12.next = 13;
-+                return this.send(_keymap["default"].ArrowLeft);
-+
-+              case 13:
-+                _context12.next = 15;
-+                return (0, _sleepPromise["default"])(100);
-+
-+              case 15:
-+                i++;
-+                _context12.next = 2;
-+                break;
-+
-+              case 18:
-+                return _context12.abrupt("return", true);
-+
-+              case 19:
-               case "end":
-                 return _context12.stop();
-             }
-@@ -1158,22 +1266,62 @@ function (_EventEmitter) {
-       _regenerator["default"].mark(function _callee14() {
-         var offsets,
-             enterOffsetMessage,
-+            getLine,
-+            i,
-             _args14 = arguments;
-         return _regenerator["default"].wrap(function _callee14$(_context14) {
-           while (1) {
-             switch (_context14.prev = _context14.next) {
-               case 0:
-                 offsets = _args14.length > 0 && _args14[0] !== undefined ? _args14[0] : [];
-+                _context14.next = 3;
-+                return this.enterIndex();
-+
-+              case 3:
-                 enterOffsetMessage = offsets.map(function (offset) {
+@@ -1168,7 +1194,7 @@ function (_EventEmitter) {
                    return "".concat(offset).concat(_keymap["default"].Enter.repeat(2));
                  }).join();
--                _context14.next = 4;
-+                _context14.next = 6;
-                 return this.send("F".concat(_keymap["default"].Enter).concat(_keymap["default"].Home).concat(enterOffsetMessage));
+                 _context14.next = 4;
+-                return this.send("F".concat(_keymap["default"].Enter).concat(_keymap["default"].Home).concat(enterOffsetMessage));
++                return this.send("".concat(_keymap["default"].Enter, " ").concat(_keymap["default"].ArrowLeft.repeat(10), "F").concat(_keymap["default"].Enter).concat(_keymap["default"].Home).concat(enterOffsetMessage));
  
--              case 4:
-+              case 6:
-+                getLine = this.getLine;
-+                i = 0;
-+
-+              case 8:
-+                if (!(i < 5)) {
-+                  _context14.next = 19;
-+                  break;
-+                }
-+
-+                if (!getLine(23).str.includes("按任意鍵繼續") && !getLine(22).str.includes("按任意鍵")) {
-+                  _context14.next = 16;
-+                  break;
-+                }
-+
-+                _context14.next = 12;
-+                return this.send(" ");
-+
-+              case 12:
-+                _context14.next = 14;
-+                return (0, _sleepPromise["default"])(100);
-+
-+              case 14:
-+                _context14.next = 17;
-+                break;
-+
-+              case 16:
-+                return _context14.abrupt("break", 19);
-+
-+              case 17:
-+                i++;
-+                _context14.next = 8;
-+                break;
-+
-+              case 19:
+               case 4:
                  return _context14.abrupt("return", true);
- 
--              case 5:
-+              case 20:
-               case "end":
-                 return _context14.stop();
-             }
 diff --git a/src/sites/ptt/bot.js b/src/sites/ptt/bot.js
-index 2a9229c4694fed2a79271e397e5676a6c45210ee..d4265e54af03fda9d93f42b7a54c8dc79b0a4e25 100644
+index 2a9229c4694fed2a79271e397e5676a6c45210ee..742a0008ee37a41a38a336bc3ca8ae7e41985433 100644
 --- a/src/sites/ptt/bot.js
 +++ b/src/sites/ptt/bot.js
-@@ -224,13 +224,20 @@ class Bot extends EventEmitter {
-       await this.send(`${key.Backspace}${kick?'y':'n'}${key.Enter}`);
-     } else if (getLine(23).str.includes("請勿頻繁登入以免造成系統過度負荷")) {
-       await this.send(`${key.Enter}`);
--    } else if (getLine(23).str.includes("按任意鍵繼續")) {
--      await this.send(`${key.Enter}`);
-+    } else if (getLine(23).str.includes("按任意鍵繼續") || getLine(22).str.includes("按任意鍵繼續")) {
-+      await this.send(` `);
-     } else if (getLine(23).str.includes("您要刪除以上錯誤嘗試的記錄嗎")) {
-       await this.send(`${key.Backspace}y${key.Enter}`);
-     } else if ((getLine(22).str+getLine(23).str).toLowerCase().includes("y/n")) {
-       await this.send(`${key.Backspace}y${key.Enter}`);
--    } else if (getLine(23).str.includes("我是")) {
-+    } else if (getLine(23).str.includes("我是") || getLine(0).str.includes("主功能表") || getLine(1).str.includes("主功能表")) {
-+      for (let attempt = 0; attempt < 5; attempt++) {
-+        if (getLine(0).str.includes("主功能表") || getLine(1).str.includes("主功能表") || getLine(2).str.includes("主功能表")) {
-+          break;
-+        }
-+        await this.send(` `);
-+        await sleep(100);
-+      }
-       this.emit('login.success');
-       return true;
-     } else {
-@@ -339,61 +346,80 @@ class Bot extends EventEmitter {
+@@ -339,61 +339,73 @@ class Bot extends EventEmitter {
        offsets = [offsets];
      }
      await this.enterFavorite(offsets);
 +    await sleep(200);
      const { getLine } = this;
  
-+    const isFavScreen = getLine(0).str.includes("我的最愛") ||
-+                        getLine(0).str.includes("看板列表") ||
-+                        getLine(1).str.includes("看板名稱") ||
-+                        getLine(2).str.includes("---");
-+    if (!isFavScreen) {
-+      await this.enterIndex();
-+      return [];
-+    }
-+
      const favorites = [];
 +    const seenKeys = new Set();
  
@@ -534,8 +292,10 @@ index 2a9229c4694fed2a79271e397e5676a6c45210ee..d4265e54af03fda9d93f42b7a54c8dc7
 +          users = '';
 +          admin = '';
 +          divider = true;
-+        } else if (bn <= 0) {
-+          continue;
++        } else {
++          if (bn <= 0 || !/^[A-Za-z0-9_.-]+$/.test(boardname)) {
++            continue;
++          }
          }
 -        switch (favorite.boardname) {
 -          case 'MyFavFolder':
@@ -591,43 +351,21 @@ index 2a9229c4694fed2a79271e397e5676a6c45210ee..d4265e54af03fda9d93f42b7a54c8dc7
      }
  
      await this.enterIndex();
-@@ -456,7 +482,18 @@ class Bot extends EventEmitter {
+@@ -456,7 +468,7 @@ class Bot extends EventEmitter {
    }
  
    async enterIndex() {
 -    await this.send(`${key.ArrowLeft.repeat(10)}`);
-+    const { getLine } = this;
-+    for (let i = 0; i < 6; i++) {
-+      if (getLine(0).str.includes("主功能表") || getLine(1).str.includes("主功能表") || getLine(2).str.includes("主功能表")) {
-+        return true;
-+      }
-+      if (getLine(23).str.includes("按任意鍵繼續") || getLine(22).str.includes("按任意鍵繼續")) {
-+        await this.send(` `);
-+      } else {
-+        await this.send(key.ArrowLeft);
-+      }
-+      await sleep(100);
-+    }
++    await this.send(`${key.Enter} ${key.ArrowLeft.repeat(10)}`);
      return true;
    }
  
-@@ -477,9 +514,19 @@ class Bot extends EventEmitter {
-   }
- 
+@@ -479,7 +491,7 @@ class Bot extends EventEmitter {
    async enterFavorite(offsets=[]) {
-+    await this.enterIndex();
      const enterOffsetMessage =
        offsets.map(offset => `${offset}${key.Enter.repeat(2)}`).join();
-     await this.send(`F${key.Enter}${key.Home}${enterOffsetMessage}`);
-+    const { getLine } = this;
-+    for (let i = 0; i < 5; i++) {
-+      if (getLine(23).str.includes("按任意鍵繼續") || getLine(22).str.includes("按任意鍵")) {
-+        await this.send(` `);
-+        await sleep(100);
-+      } else {
-+        break;
-+      }
-+    }
+-    await this.send(`F${key.Enter}${key.Home}${enterOffsetMessage}`);
++    await this.send(`${key.Enter} ${key.ArrowLeft.repeat(10)}F${key.Enter}${key.Home}${enterOffsetMessage}`);
      return true;
    }
  

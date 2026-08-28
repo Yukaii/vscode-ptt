@@ -228,7 +228,9 @@ export const FavoriteNode: FC<{
     setError(null);
     try {
       const data = await ptt.getFavorite();
-      const validFavorites = (data || []).filter(item => !item.divider && Boolean(item.boardname?.trim()));
+      const validFavorites = (data || []).filter(
+        item => !item.divider && Boolean(item.boardname?.trim()) && /^[A-Za-z0-9_.-]+$/.test(item.boardname.trim())
+      );
       store.setFavorites(validFavorites);
       setFavorites(validFavorites);
     } catch (err: unknown) {
