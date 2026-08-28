@@ -4,7 +4,7 @@
   "description": "PTT Client for VSCode",
   "version": "0.3.2",
   "engines": {
-    "vscode": "^1.32.0"
+    "vscode": "^1.85.0"
   },
   "preview": true,
   "categories": [
@@ -19,7 +19,11 @@
   "license": "WTFPL",
   "activationEvents": [
     "onCommand:ptt.login",
+    "onCommand:ptt.logout",
     "onCommand:ptt.add-board",
+    "onCommand:ptt.remove-board",
+    "onCommand:ptt.search-board-by-push",
+    "onCommand:ptt.refresh-article",
     "onCommand:ptt.favorite-board",
     "onView:pttTree"
   ],
@@ -137,17 +141,28 @@
     "compile": "tsc -p ./",
     "cleanAndCompile": "tsc --build --clean && tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "postinstall": "node ./node_modules/vscode/bin/install",
-    "test": "npm run compile && mocha ./out/test/*.js"
+    "lint": "eslint src",
+    "test:unit": "mocha --require ./out/test/unit/setup.js ./out/test/unit/**/*.test.js",
+    "test:integration": "vscode-test",
+    "test": "npm run compile && npm run test:unit"
   },
   "devDependencies": {
-    "@types/http-proxy": "^1.17.0",
-    "@types/mocha": "^2.2.42",
-    "@types/node": "^10.14.4",
-    "dotenv": "^7.0.0",
-    "tslint": "^5.15.0",
-    "typescript": "^3.4.1",
-    "vscode": "^1.1.33"
+    "@eslint/js": "^9.39.5",
+    "@types/mocha": "^10.0.6",
+    "@types/node": "^20.11.24",
+    "@types/vscode": "^1.85.0",
+    "@types/ws": "^8.5.10",
+    "@typescript-eslint/eslint-plugin": "^8.68.0",
+    "@typescript-eslint/parser": "^8.68.0",
+    "@vscode/test-cli": "^0.0.15",
+    "@vscode/test-electron": "^3.1.0",
+    "dotenv": "^16.4.5",
+    "eslint": "^9.39.5",
+    "glob": "^10.3.10",
+    "mocha": "^10.3.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.68.0",
+    "ws": "^8.16.0"
   },
   "dependencies": {
     "ptt-client": "^0.8.1"

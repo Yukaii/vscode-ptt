@@ -1,17 +1,17 @@
 import * as vscode from 'vscode';
-
+import { IPttClient } from './types';
 import store from './store';
 
 type Node = Board | Article | LoadMoreArticle;
 
 export class PttTreeDataProvider implements vscode.TreeDataProvider<Node> {
-  constructor (private ptt, private ctx: vscode.ExtensionContext) {}
+  constructor (private ptt: IPttClient, private ctx: vscode.ExtensionContext) {}
 
 	private _onDidChangeTreeData: vscode.EventEmitter<Board | undefined> = new vscode.EventEmitter<Board | undefined>();
   readonly onDidChangeTreeData: vscode.Event<Board | undefined> = this._onDidChangeTreeData.event;
 
   refresh(): void {
-		this._onDidChangeTreeData.fire();
+		this._onDidChangeTreeData.fire(undefined);
   }
 
   getTreeItem (element: Node): vscode.TreeItem {
@@ -19,11 +19,11 @@ export class PttTreeDataProvider implements vscode.TreeDataProvider<Node> {
 	}
 
 	async getChildren (element?: Node): Promise<Node[]> {
-    if (!this.ptt.state.login) {
+    if (!this.ptt?.state?.login) {
       return [];
     }
 
-    let childrenFactory = new ChildrenFactory(element, this.ptt, this.ctx);
+    const childrenFactory = new ChildrenFactory(element, this.ptt, this.ctx);
     return childrenFactory.getChidrenType().getNode();
   }
 }
@@ -35,9 +35,9 @@ export interface IChildren{
 export class ArticleChildren implements IChildren
 {
   element: Node;
-  ptt: any;
+  ptt: IPttClient;
 
-  constructor(element: Node, ptt: any)
+  constructor(element: Node, ptt: IPttClient)
   {
     this.element = element;
     this.ptt = ptt;
@@ -57,7 +57,7 @@ export class ArticleChildren implements IChildren
       store.add(boardname, articles);
     }
   
-    let articlesList: (Article | LoadMoreArticle)[] = [
+    const articlesList: (Article | LoadMoreArticle)[] = [
       ...store.asList(boardname).map(article => new Article(
         Number(article.sn),
         `${article.push} ${article.status} ${article.title}`,
@@ -102,10 +102,10 @@ export class StartupChildren implements IChildren
 export class ChildrenFactory
 {
   element: Node;
-  ptt: any;
+  ptt: IPttClient;
   ctx: vscode.ExtensionContext;
 
-  constructor(element: Node, ptt: any, ctx: vscode.ExtensionContext)
+  constructor(element: Node, ptt: IPttClient, ctx: vscode.ExtensionContext)
   {
     this.element = element;
     this.ptt = ptt;

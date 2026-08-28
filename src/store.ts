@@ -35,12 +35,13 @@ class ArticleStore {
   }
   
   release (boardname: string) {
-    this.articleStore[boardname] = [];
+    this.articleStore[boardname] = {};
     this.articleIds[boardname] = [];
   }
 
   lastSn (boardname: string) {
-    return this.asList(boardname).slice(-1)[0].sn;
+    const list = this.asList(boardname);
+    return list.length > 0 ? list.slice(-1)[0].sn : 0;
   }
 
   isEmpty (boardname: string)

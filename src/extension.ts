@@ -1,44 +1,45 @@
 import * as vscode from 'vscode';
+import WebSocket from 'ws';
 import PTT from 'ptt-client';
 import key from 'ptt-client/dist/utils/keymap';
 
-(global as any).WebSocket = require('ws');
+(global as any).WebSocket = WebSocket;
 
 import { PttTreeDataProvider, Board } from './pttDataProvider';
 import ContentProvider from './provider';
 import store, { ArticleListItem } from './store';
+import { IPttClient, FavoriteBoardItem } from './types';
 
-let ptt;
+export { FavoriteBoardItem } from './types';
+
+let ptt: IPttClient;
 let ctx: vscode.ExtensionContext;
 let pttProvider: PttTreeDataProvider;
 
-export interface FavoriteBoardItem{
-  bn: string;
-  read: string;
-  boardname: string;
-  category: string;
-  title: string;
-  users: string;
-  admin: string;
-  folder: boolean;
-  divider: boolean;
-}
-
-function intializePttClient () {
+function intializePttClient (timeoutMs = 5000): Promise<IPttClient> {
   return new Promise(resolve => {
-    const ptt = new PTT({ origin: 'app://vscode-ptt' });
-    ptt.once('connect', () => resolve(ptt));
+    const client = new PTT({ origin: 'app://vscode-ptt' });
+    const timer = setTimeout(() => {
+      resolve(client);
+    }, timeoutMs);
+    client.once('connect', () => {
+      clearTimeout(timer);
+      resolve(client);
+    });
+    client.once('error', () => {
+      clearTimeout(timer);
+      resolve(client);
+    });
   });
 }
 
 function checkLogin () {
-  const { login } = ptt.state;
-  return login;
+  return ptt?.state?.login ?? false;
 }
 
-async function getLoginCredential (silent = false) {
-  let username = ctx.globalState.get('username');
-  let password = ctx.globalState.get('password');
+async function getLoginCredential (silent = false): Promise<{ username?: string; password?: string }> {
+  let username = ctx.globalState.get<string>('username');
+  let password = ctx.globalState.get<string>('password');
 
   if ((username && password) || silent) {
     return { username, password };
@@ -77,7 +78,7 @@ async function login (silent = false) {
   }
 
   await ptt.login(username, password, vscode.workspace.getConfiguration().get('kickLogin'));
-  var { login } = ptt.state;
+  const { login } = ptt.state;
   if (login) {
     ctx.globalState.update('username', username);
     ctx.globalState.update('password', password);
@@ -92,7 +93,7 @@ async function login (silent = false) {
   }
 }
 
-async function pickFavorite (): Promise<string> {
+async function pickFavorite (): Promise<string | null> {
   await login();
 
   const favorites:FavoriteBoardItem[] = await ptt.getFavorite();
@@ -228,7 +229,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
     vscode.window.showInformationMessage('開始搜尋');
     setSearchCondition("push", push);
-    let pushArticles: ArticleListItem[] = await ptt.getArticles(board.boardname);
+    const pushArticles: ArticleListItem[] = await ptt.getArticles(board.boardname);
     vscode.window.showInformationMessage('完成搜尋');
 
     store.add(board.boardname, pushArticles);
