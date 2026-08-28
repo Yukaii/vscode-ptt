@@ -30,11 +30,29 @@ export const mockVscode = {
   TreeItem: class {
     label: string;
     collapsibleState: number;
+    id?: string;
+    iconPath?: unknown;
+    description?: string | boolean;
+    resourceUri?: unknown;
+    tooltip?: unknown;
     command?: unknown;
     contextValue?: string;
     constructor(label: string, collapsibleState: number) {
       this.label = label;
       this.collapsibleState = collapsibleState;
+    }
+  },
+  ThemeIcon: class {
+    constructor(public id: string, public color?: unknown) {}
+  },
+  MarkdownString: class {
+    private str = '';
+    appendMarkdown(s: string) {
+      this.str += s;
+      return this;
+    }
+    toString() {
+      return this.str;
     }
   },
   TreeItemCollapsibleState: {
@@ -66,6 +84,10 @@ export const mockVscode = {
     executeCommand: async (..._args: unknown[]): Promise<unknown> => undefined
   },
   window: {
+    createTreeView: (_viewId: string, options?: { treeDataProvider?: unknown }) => ({
+      treeDataProvider: options?.treeDataProvider,
+      dispose: () => {}
+    }),
     registerTreeDataProvider: () => ({ dispose: () => {} }),
     showInformationMessage: async (..._args: unknown[]): Promise<unknown> => undefined,
     showWarningMessage: async (..._args: unknown[]): Promise<unknown> => undefined,

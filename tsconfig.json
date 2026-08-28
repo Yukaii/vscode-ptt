@@ -9,6 +9,7 @@
 		"sourceMap": true,
 		"rootDir": "src",
 		"strict": false,
+		"jsx": "react-jsx",
 		"esModuleInterop": true,
 		"skipLibCheck": true
 	},
