@@ -16,7 +16,7 @@ export class MockPttClient implements IPttClient {
   }
 
   async login(username?: string, password?: string, _kickLogin?: boolean): Promise<boolean> {
-    if (username && password) {
+    if (username && (password || username.toLowerCase() === 'guest' || password === '')) {
       this.state.login = true;
       return true;
     }

@@ -1,0 +1,214 @@
+import * as assert from 'assert';
+import * as vscode from 'vscode';
+import {
+  login,
+  getLoginCredential,
+  checkLogin,
+  setPttClient,
+  setExtensionContext,
+  setPttProvider
+} from '../../extension';
+import { MockPttClient } from './mockPttClient';
+import { PttTreeDataProvider } from '../../pttDataProvider';
+import { mockVscode } from './setup';
+
+describe('Login Unit Tests', () => {
+  let mockContext: vscode.ExtensionContext;
+  let globalStore: Record<string, any>;
+  let mockPtt: MockPttClient;
+  let mockProvider: PttTreeDataProvider;
+  let messages: { info: string[]; warning: string[] };
+
+  beforeEach(() => {
+    globalStore = {};
+    mockContext = {
+      globalState: {
+        get: (key: string) => globalStore[key],
+        update: (key: string, value: any) => {
+          globalStore[key] = value;
+          return Promise.resolve();
+        }
+      }
+    } as unknown as vscode.ExtensionContext;
+
+    mockPtt = new MockPttClient(false);
+    mockProvider = new PttTreeDataProvider(mockPtt, mockContext);
+
+    messages = { info: [], warning: [] };
+    mockVscode.window.showInformationMessage = async (msg: string) => {
+      messages.info.push(msg);
+      return undefined;
+    };
+    mockVscode.window.showWarningMessage = async (msg: string) => {
+      messages.warning.push(msg);
+      return undefined;
+    };
+
+    setPttClient(mockPtt);
+    setExtensionContext(mockContext);
+    setPttProvider(mockProvider);
+  });
+
+  describe('getLoginCredential', () => {
+    it('returns stored credentials if present (normal user)', async () => {
+      globalStore['username'] = 'testuser';
+      globalStore['password'] = 'testpass';
+
+      const creds = await getLoginCredential(false);
+      assert.strictEqual(creds.username, 'testuser');
+      assert.strictEqual(creds.password, 'testpass');
+    });
+
+    it('returns stored guest credentials even if password is empty', async () => {
+      globalStore['username'] = 'guest';
+      globalStore['password'] = '';
+
+      const creds = await getLoginCredential(false);
+      assert.strictEqual(creds.username, 'guest');
+      assert.strictEqual(creds.password, '');
+    });
+
+    it('prompts and skips password input when username is guest', async () => {
+      let passwordPrompted = false;
+      mockVscode.window.showInputBox = async (options: any) => {
+        if (options.placeHolder === '帳號') {
+          return 'guest';
+        }
+        if (options.placeHolder === '密碼') {
+          passwordPrompted = true;
+          return 'should_not_be_called';
+        }
+        return undefined;
+      };
+
+      const creds = await getLoginCredential(false);
+      assert.strictEqual(creds.username, 'guest');
+      assert.strictEqual(creds.password, '');
+      assert.strictEqual(passwordPrompted, false);
+    });
+
+    it('prompts and skips password input when username is Guest (case insensitive)', async () => {
+      let passwordPrompted = false;
+      mockVscode.window.showInputBox = async (options: any) => {
+        if (options.placeHolder === '帳號') {
+          return 'Guest';
+        }
+        if (options.placeHolder === '密碼') {
+          passwordPrompted = true;
+          return 'should_not_be_called';
+        }
+        return undefined;
+      };
+
+      const creds = await getLoginCredential(false);
+      assert.strictEqual(creds.username, 'Guest');
+      assert.strictEqual(creds.password, '');
+      assert.strictEqual(passwordPrompted, false);
+    });
+
+    it('prompts for both username and password for normal accounts', async () => {
+      mockVscode.window.showInputBox = async (options: any) => {
+        if (options.placeHolder === '帳號') {
+          return 'myaccount';
+        }
+        if (options.placeHolder === '密碼') {
+          return 'mypassword';
+        }
+        return undefined;
+      };
+
+      const creds = await getLoginCredential(false);
+      assert.strictEqual(creds.username, 'myaccount');
+      assert.strictEqual(creds.password, 'mypassword');
+    });
+
+    it('returns empty if username prompt is cancelled', async () => {
+      mockVscode.window.showInputBox = async () => undefined;
+
+      const creds = await getLoginCredential(false);
+      assert.deepStrictEqual(creds, {});
+    });
+
+    it('returns empty if password prompt is cancelled for non-guest', async () => {
+      mockVscode.window.showInputBox = async (options: any) => {
+        if (options.placeHolder === '帳號') {
+          return 'myaccount';
+        }
+        return undefined; // Password cancelled
+      };
+
+      const creds = await getLoginCredential(false);
+      assert.deepStrictEqual(creds, {});
+    });
+  });
+
+  describe('login flow', () => {
+    it('successfully logs in with guest account and empty password', async () => {
+      mockVscode.window.showInputBox = async (options: any) => {
+        if (options.placeHolder === '帳號') {
+          return 'guest';
+        }
+        return undefined;
+      };
+
+      await login(false);
+
+      assert.strictEqual(checkLogin(), true);
+      assert.strictEqual(globalStore['username'], 'guest');
+      assert.strictEqual(globalStore['password'], '');
+      assert.ok(messages.info.some(msg => msg.includes('guest 登入成功')));
+    });
+
+    it('successfully logs in with normal account', async () => {
+      mockVscode.window.showInputBox = async (options: any) => {
+        if (options.placeHolder === '帳號') {
+          return 'pttuser';
+        }
+        if (options.placeHolder === '密碼') {
+          return 'secretpass';
+        }
+        return undefined;
+      };
+
+      await login(false);
+
+      assert.strictEqual(checkLogin(), true);
+      assert.strictEqual(globalStore['username'], 'pttuser');
+      assert.strictEqual(globalStore['password'], 'secretpass');
+      assert.ok(messages.info.some(msg => msg.includes('pttuser 登入成功')));
+    });
+
+    it('shows warning message when login credentials are missing and not silent', async () => {
+      mockVscode.window.showInputBox = async () => undefined;
+
+      await login(false);
+
+      assert.strictEqual(checkLogin(), false);
+      assert.ok(messages.warning.some(msg => msg.includes('需要帳密才能使用')));
+    });
+
+    it('does not prompt or warn during silent login when no credentials exist', async () => {
+      let prompted = false;
+      mockVscode.window.showInputBox = async () => {
+        prompted = true;
+        return undefined;
+      };
+
+      await login(true);
+
+      assert.strictEqual(checkLogin(), false);
+      assert.strictEqual(prompted, false);
+      assert.strictEqual(messages.warning.length, 0);
+    });
+
+    it('performs silent auto-login on startup when guest credentials exist in globalState', async () => {
+      globalStore['username'] = 'guest';
+      globalStore['password'] = '';
+
+      await login(true);
+
+      assert.strictEqual(checkLogin(), true);
+      assert.strictEqual(messages.info.length, 0); // silent = true so no info popup
+    });
+  });
+});

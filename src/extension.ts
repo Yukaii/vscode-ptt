@@ -33,16 +33,30 @@ function intializePttClient (timeoutMs = 5000): Promise<IPttClient> {
   });
 }
 
-function checkLogin () {
+export function setPttClient (client: IPttClient) {
+  ptt = client;
+}
+
+export function setExtensionContext (context: vscode.ExtensionContext) {
+  ctx = context;
+}
+
+export function setPttProvider (provider: PttTreeDataProvider) {
+  pttProvider = provider;
+}
+
+export function checkLogin () {
   return ptt?.state?.login ?? false;
 }
 
-async function getLoginCredential (silent = false): Promise<{ username?: string; password?: string }> {
-  let username = ctx.globalState.get<string>('username');
-  let password = ctx.globalState.get<string>('password');
+export async function getLoginCredential (silent = false): Promise<{ username?: string; password?: string }> {
+  let username = ctx?.globalState?.get<string>('username');
+  let password = ctx?.globalState?.get<string>('password');
 
-  if ((username && password) || silent) {
-    return { username, password };
+  const hasCredentials = Boolean(username && ((password !== undefined && password !== null) || username.toLowerCase() === 'guest'));
+
+  if (hasCredentials || silent) {
+    return { username, password: password ?? '' };
   }
 
   username = await vscode.window.showInputBox({
@@ -54,35 +68,44 @@ async function getLoginCredential (silent = false): Promise<{ username?: string;
     return {};
   }
 
-  password = await vscode.window.showInputBox({
-    placeHolder: '密碼',
-    prompt: '請輸入 PTT 登入密碼',
-    password: true
-  });
+  if (username.toLowerCase() === 'guest') {
+    password = '';
+  } else {
+    password = await vscode.window.showInputBox({
+      placeHolder: '密碼',
+      prompt: '請輸入 PTT 登入密碼',
+      password: true
+    });
+
+    if (password === undefined) {
+      return {};
+    }
+  }
 
   return { username, password };
 }
 
-async function login (silent = false) {
+export async function login (silent = false) {
   if (checkLogin()) {
     return;
   }
 
   const { username, password } = await getLoginCredential(silent);
 
-  if (!username || !password) {
+  const isGuest = username?.toLowerCase() === 'guest';
+  if (!username || (password === undefined && !isGuest)) {
     if (!silent) {
       vscode.window.showWarningMessage('需要帳密才能使用 VSCode PTT 噢！');
     }
     return;
   }
 
-  await ptt.login(username, password, vscode.workspace.getConfiguration().get('kickLogin'));
+  await ptt.login(username, password ?? '', vscode.workspace.getConfiguration().get('kickLogin'));
   const { login } = ptt.state;
   if (login) {
     ctx.globalState.update('username', username);
-    ctx.globalState.update('password', password);
-    pttProvider.refresh();
+    ctx.globalState.update('password', password ?? '');
+    pttProvider?.refresh();
     if (!silent) {
       vscode.window.showInformationMessage(`以 ${username} 登入成功！`);
     }
