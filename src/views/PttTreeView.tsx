@@ -16,6 +16,12 @@ export function getBoardNameFromItem(boardItem: unknown): string | undefined {
     return undefined;
   }
   if (typeof boardItem === 'string') {
+    if (boardItem.startsWith('loadmore-')) {
+      return boardItem.replace('loadmore-', '');
+    }
+    if (boardItem.startsWith('board-')) {
+      return boardItem.replace('board-', '');
+    }
     return boardItem;
   }
   const item = boardItem as Record<string, unknown>;
@@ -24,21 +30,43 @@ export function getBoardNameFromItem(boardItem: unknown): string | undefined {
   }
   if (item.value && typeof item.value === 'object') {
     const val = item.value as Record<string, unknown>;
-    if (typeof val.label === 'string') {
+    if (typeof val.id === 'string') {
+      if (val.id.startsWith('loadmore-')) {
+        return val.id.replace('loadmore-', '');
+      }
+      if (val.id.startsWith('board-')) {
+        return val.id.replace('board-', '');
+      }
+    }
+    if (typeof val.boardname === 'string') {
+      return val.boardname;
+    }
+    if (typeof val.label === 'string' && val.label !== '載入更多文章' && !val.label.startsWith('載入')) {
       return val.label;
     }
     if (val.label && typeof val.label === 'object' && 'label' in val.label) {
-      return (val.label as { label: string }).label;
-    }
-    if (typeof val.id === 'string' && val.id.startsWith('board-')) {
-      return val.id.replace('board-', '');
+      const lbl = (val.label as { label: string }).label;
+      if (lbl !== '載入更多文章' && !lbl.startsWith('載入')) {
+        return lbl;
+      }
     }
   }
-  if (typeof item.label === 'string') {
+  if (typeof item.id === 'string') {
+    if (item.id.startsWith('loadmore-')) {
+      return item.id.replace('loadmore-', '');
+    }
+    if (item.id.startsWith('board-')) {
+      return item.id.replace('board-', '');
+    }
+  }
+  if (typeof item.label === 'string' && item.label !== '載入更多文章' && !item.label.startsWith('載入')) {
     return item.label;
   }
   if (item.label && typeof item.label === 'object' && 'label' in item.label) {
-    return (item.label as { label: string }).label;
+    const lbl = (item.label as { label: string }).label;
+    if (lbl !== '載入更多文章' && !lbl.startsWith('載入')) {
+      return lbl;
+    }
   }
   return undefined;
 }

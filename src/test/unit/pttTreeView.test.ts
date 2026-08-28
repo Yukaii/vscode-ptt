@@ -35,6 +35,14 @@ describe('PttTreeView Component and Controller Tests', () => {
       assert.strictEqual(getBoardNameFromItem({ label: { label: 'joke' } }), 'joke');
     });
 
+    it('extracts board name from loadmore item id and ignores loadmore label', () => {
+      assert.strictEqual(getBoardNameFromItem({ id: 'loadmore-SYSOP', label: '載入更多文章' }), 'SYSOP');
+      assert.strictEqual(
+        getBoardNameFromItem({ value: { id: 'loadmore-Gossiping', label: '載入更多文章' } }),
+        'Gossiping'
+      );
+    });
+
     it('returns undefined for invalid or nullish inputs', () => {
       assert.strictEqual(getBoardNameFromItem(null), undefined);
       assert.strictEqual(getBoardNameFromItem(undefined), undefined);

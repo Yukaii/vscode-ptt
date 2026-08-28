@@ -110,7 +110,6 @@ export function setPttClient (client: IPttClient) {
   if (client?.on) {
     client.on('stateChange', () => {
       updateLoginContext();
-      refreshTreeView();
     });
     client.on('disconnect', () => {
       updateLoginContext();
