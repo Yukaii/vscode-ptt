@@ -1,0 +1,306 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "PTT",
+  "scopeName": "source.ptt",
+  "patterns": [
+    {
+      "include": "#header"
+    },
+    {
+      "include": "#separator"
+    },
+    {
+      "include": "#push-comment"
+    },
+    {
+      "include": "#boo-comment"
+    },
+    {
+      "include": "#arrow-comment"
+    },
+    {
+      "include": "#system-notice"
+    },
+    {
+      "include": "#quote-header"
+    },
+    {
+      "include": "#quote-line"
+    },
+    {
+      "include": "#signature-divider"
+    },
+    {
+      "include": "#urls"
+    },
+    {
+      "include": "#category-tags"
+    }
+  ],
+  "repository": {
+    "header": {
+      "patterns": [
+        {
+          "name": "meta.header.author.ptt",
+          "match": "^(作者:)\\s*([^\\s()]+)?(?:\\s*(\\([^\\)]*\\)))?(?:\\s*(看板:)\\s*(\\S+))?",
+          "captures": {
+            "1": {
+              "name": "keyword.other.header.ptt"
+            },
+            "2": {
+              "name": "entity.name.function.author.ptt"
+            },
+            "3": {
+              "name": "string.quoted.nickname.ptt"
+            },
+            "4": {
+              "name": "keyword.other.header.ptt"
+            },
+            "5": {
+              "name": "support.class.board.ptt"
+            }
+          }
+        },
+        {
+          "name": "meta.header.title.ptt",
+          "match": "^(標題:)\\s*(?:(Re:\\s*)?(\\[[^\\]]+\\])\\s*)?(.*)$",
+          "captures": {
+            "1": {
+              "name": "keyword.other.header.ptt"
+            },
+            "2": {
+              "name": "keyword.control.reply.ptt"
+            },
+            "3": {
+              "name": "entity.name.tag.category.ptt"
+            },
+            "4": {
+              "name": "markup.heading.title.ptt"
+            }
+          }
+        },
+        {
+          "name": "meta.header.time.ptt",
+          "match": "^(時間:)\\s*(.*)$",
+          "captures": {
+            "1": {
+              "name": "keyword.other.header.ptt"
+            },
+            "2": {
+              "name": "constant.other.timestamp.ptt"
+            }
+          }
+        }
+      ]
+    },
+    "separator": {
+      "name": "comment.line.separator.ptt",
+      "match": "^(?:─{5,}|━{5,}|—{5,}|-{5,}|={5,})\\s*$"
+    },
+    "signature-divider": {
+      "name": "comment.line.separator.ptt punctuation.definition.separator.ptt",
+      "match": "^--\\s*$"
+    },
+    "push-comment": {
+      "begin": "^(推)\\s+([A-Za-z0-9_]+)\\s*(:)",
+      "beginCaptures": {
+        "1": {
+          "name": "entity.name.tag.push.ptt markup.inserted.ptt"
+        },
+        "2": {
+          "name": "entity.name.function.user.ptt"
+        },
+        "3": {
+          "name": "punctuation.separator.ptt"
+        }
+      },
+      "end": "$",
+      "patterns": [
+        {
+          "name": "meta.push.tail.ptt",
+          "match": "(?:\\s+((?:\\d{1,3}\\.){3}\\d{1,3}))?\\s+(\\d{2}/\\d{2}(?:\\s+\\d{2}:\\d{2}(?::\\d{2})?)?)\\s*$",
+          "captures": {
+            "1": {
+              "name": "constant.numeric.ip.ptt"
+            },
+            "2": {
+              "name": "constant.other.date.ptt comment.line.ptt"
+            }
+          }
+        },
+        {
+          "include": "#urls"
+        }
+      ]
+    },
+    "boo-comment": {
+      "begin": "^(噓)\\s+([A-Za-z0-9_]+)\\s*(:)",
+      "beginCaptures": {
+        "1": {
+          "name": "invalid.illegal.boo.ptt markup.deleted.ptt"
+        },
+        "2": {
+          "name": "entity.name.function.user.ptt"
+        },
+        "3": {
+          "name": "punctuation.separator.ptt"
+        }
+      },
+      "end": "$",
+      "patterns": [
+        {
+          "name": "meta.push.tail.ptt",
+          "match": "(?:\\s+((?:\\d{1,3}\\.){3}\\d{1,3}))?\\s+(\\d{2}/\\d{2}(?:\\s+\\d{2}:\\d{2}(?::\\d{2})?)?)\\s*$",
+          "captures": {
+            "1": {
+              "name": "constant.numeric.ip.ptt"
+            },
+            "2": {
+              "name": "constant.other.date.ptt comment.line.ptt"
+            }
+          }
+        },
+        {
+          "include": "#urls"
+        }
+      ]
+    },
+    "arrow-comment": {
+      "begin": "^(→)\\s+([A-Za-z0-9_]+)\\s*(:)",
+      "beginCaptures": {
+        "1": {
+          "name": "comment.line.arrow.ptt markup.changed.ptt"
+        },
+        "2": {
+          "name": "entity.name.function.user.ptt"
+        },
+        "3": {
+          "name": "punctuation.separator.ptt"
+        }
+      },
+      "end": "$",
+      "patterns": [
+        {
+          "name": "meta.push.tail.ptt",
+          "match": "(?:\\s+((?:\\d{1,3}\\.){3}\\d{1,3}))?\\s+(\\d{2}/\\d{2}(?:\\s+\\d{2}:\\d{2}(?::\\d{2})?)?)\\s*$",
+          "captures": {
+            "1": {
+              "name": "constant.numeric.ip.ptt"
+            },
+            "2": {
+              "name": "constant.other.date.ptt comment.line.ptt"
+            }
+          }
+        },
+        {
+          "include": "#urls"
+        }
+      ]
+    },
+    "quote-header": {
+      "name": "markup.quote.header.ptt",
+      "match": "^(※\\s*引述[《<])([^》>]+)([》>]之銘言[：:])",
+      "captures": {
+        "1": {
+          "name": "keyword.other.quote.ptt markup.quote.ptt"
+        },
+        "2": {
+          "name": "entity.name.function.author.ptt markup.quote.ptt"
+        },
+        "3": {
+          "name": "keyword.other.quote.ptt markup.quote.ptt"
+        }
+      }
+    },
+    "quote-line": {
+      "begin": "^(\\s*(?:[:>:]\\s*)+)",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.definition.quote.ptt markup.quote.ptt comment.line.quote.ptt"
+        }
+      },
+      "end": "$",
+      "name": "markup.quote.ptt comment.line.quote.ptt",
+      "patterns": [
+        {
+          "include": "#urls"
+        },
+        {
+          "include": "#category-tags"
+        }
+      ]
+    },
+    "system-notice": {
+      "patterns": [
+        {
+          "name": "meta.notice.origin.ptt",
+          "match": "^(※\\s*發信站:)\\s*(批踢踢實業坊\\([^\\)]+\\))(?:,\\s*(來自:)\\s*([^\\s]+(?:\\s*\\([^\\)]*\\))?))?",
+          "captures": {
+            "1": {
+              "name": "keyword.other.notice.ptt"
+            },
+            "2": {
+              "name": "support.class.notice.ptt"
+            },
+            "3": {
+              "name": "keyword.other.notice.ptt"
+            },
+            "4": {
+              "name": "constant.numeric.ip.ptt"
+            }
+          }
+        },
+        {
+          "name": "meta.notice.url.ptt",
+          "match": "^(※\\s*文章網址:)\\s*(\\S+)",
+          "captures": {
+            "1": {
+              "name": "keyword.other.notice.ptt"
+            },
+            "2": {
+              "name": "markup.underline.link.ptt constant.other.reference.link.ptt"
+            }
+          }
+        },
+        {
+          "name": "meta.notice.edit.ptt",
+          "match": "^(※\\s*編輯:)\\s*([^\\s()]+)(?:\\s*(\\([^)]+\\)))?,\\s*(.*)$",
+          "captures": {
+            "1": {
+              "name": "keyword.other.notice.ptt"
+            },
+            "2": {
+              "name": "entity.name.function.user.ptt"
+            },
+            "3": {
+              "name": "constant.numeric.ip.ptt"
+            },
+            "4": {
+              "name": "constant.other.date.ptt comment.line.ptt"
+            }
+          }
+        },
+        {
+          "name": "comment.line.notice.ptt",
+          "match": "^(※)\\s*(.*)$",
+          "captures": {
+            "1": {
+              "name": "keyword.other.notice.ptt"
+            },
+            "2": {
+              "name": "comment.line.notice.ptt"
+            }
+          }
+        }
+      ]
+    },
+    "urls": {
+      "name": "markup.underline.link.ptt constant.other.reference.link.ptt",
+      "match": "https?://[^\\s<>\"']+"
+    },
+    "category-tags": {
+      "name": "entity.name.tag.category.ptt keyword.control.category.ptt",
+      "match": "\\[[^\\]\\r\\n]+\\]"
+    }
+  }
+}

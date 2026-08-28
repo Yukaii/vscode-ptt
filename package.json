@@ -33,6 +33,26 @@
   },
   "main": "./out/extension.js",
   "contributes": {
+    "languages": [
+      {
+        "id": "ptt",
+        "aliases": [
+          "PTT",
+          "ptt"
+        ],
+        "extensions": [
+          ".ptt"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "ptt",
+        "scopeName": "source.ptt",
+        "path": "./syntaxes/ptt.tmLanguage.json"
+      }
+    ],
     "commands": [
       {
         "command": "ptt.login",

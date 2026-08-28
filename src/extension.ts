@@ -299,8 +299,17 @@ export async function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(vscode.commands.registerCommand('ptt.show-article', async (sn, boardname) => {
     const doc = await vscode.workspace.openTextDocument(vscode.Uri.parse(`${ContentProvider.scheme}:${boardname}/${sn}`));
+    await vscode.languages.setTextDocumentLanguage(doc, 'ptt');
     await vscode.window.showTextDocument(doc, vscode.ViewColumn.Active);
   }));
+
+  context.subscriptions.push(
+    vscode.workspace.onDidOpenTextDocument(async (doc) => {
+      if (doc.uri.scheme === ContentProvider.scheme && doc.languageId !== 'ptt') {
+        await vscode.languages.setTextDocumentLanguage(doc, 'ptt');
+      }
+    })
+  );
 
   context.subscriptions.push(vscode.commands.registerCommand('ptt.remove-board', (board: Board) => {
     const boardlist: string[] = ctx.globalState.get('boardlist') || [];
