@@ -273,7 +273,7 @@ export class Bot extends EventEmitter {
   }
 
   public async enterIndex(): Promise<boolean> {
-    await this.send(`${keymap.Enter} ${keymap.ArrowLeft.repeat(10)}`);
+    await this.send(keymap.ArrowLeft.repeat(10));
     return true;
   }
 
@@ -283,15 +283,18 @@ export class Bot extends EventEmitter {
     const lowerBoard = boardname.toLowerCase();
     const { getLine } = this;
 
-    if (getLine(23).str.includes('按任意鍵繼續') || getLine(22).str.includes('按任意鍵繼續')) {
-      await this.send(' ');
+    for (let t = 0; t < 6; t++) {
+      if (getLine(23).str.includes('按任意鍵繼續') || getLine(22).str.includes('按任意鍵繼續')) {
+        await this.send(' ');
+      }
+      if (getLine(0).str.toLowerCase().includes(lowerBoard)) {
+        this._state.position.boardname = boardname;
+        this.emit('stateChange', this.state);
+        return true;
+      }
+      await sleep(100);
     }
 
-    if (getLine(0).str.toLowerCase().includes(lowerBoard)) {
-      this._state.position.boardname = boardname;
-      this.emit('stateChange', this.state);
-      return true;
-    }
     return false;
   }
 
@@ -324,7 +327,7 @@ export class Bot extends EventEmitter {
             break;
           }
 
-          const match = line.match(/^\s*[>●*]?\s*(\d+)\s+([A-Za-z0-9_.-]+)\s+(\S+)(?:\s+(.*))?$/);
+          const match = line.match(/^\s*[●>─*]?\s*(\d+)\s+ˇ?\s*([A-Za-z0-9_.-]+)\s+(\S+)(?:\s+(.*))?$/);
           if (!match) {
             continue;
           }
@@ -332,8 +335,7 @@ export class Bot extends EventEmitter {
           const bn = Number.parseInt(match[1], 10);
           const boardname = match[2];
           const category = match[3];
-          const rawTitle = (match[4] || '').trim();
-          const cleanTitle = rawTitle.replace(/\s+([爆\d!~HOT]+|\d+)\s*(\S+)?$/, '').trim();
+          const rawTitle = (match[4] || '').replace(/\s+([爆\d!~HOT]+|\d+)\s*\S*$/, '').trim();
           let folder = false;
           let divider = false;
 
@@ -352,10 +354,10 @@ export class Bot extends EventEmitter {
             seenKeys.add(itemKey);
             favorites.push({
               bn,
-              read: true,
+              read: !line.includes('ˇ'),
               boardname,
               category,
-              title: cleanTitle,
+              title: rawTitle,
               users: '',
               admin: '',
               folder,
