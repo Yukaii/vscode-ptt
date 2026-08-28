@@ -111,19 +111,14 @@
           "group": "navigation@1"
         },
         {
-          "command": "ptt.favorite-board",
+          "command": "ptt.refresh-article",
           "when": "view == pttTree && ptt:loggedIn",
           "group": "navigation@2"
         },
         {
-          "command": "ptt.refresh-article",
-          "when": "view == pttTree && ptt:loggedIn",
-          "group": "navigation@3"
-        },
-        {
           "command": "ptt.logout",
           "when": "view == pttTree && ptt:loggedIn",
-          "group": "navigation@4"
+          "group": "navigation@3"
         }
       ],
       "view/item/context": [
@@ -174,15 +169,16 @@
       }
     ]
   },
+  "packageManager": "pnpm@12.0.0",
   "scripts": {
-    "vscode:prepublish": "npm run compile",
+    "vscode:prepublish": "pnpm compile",
     "compile": "tsc -p ./",
     "cleanAndCompile": "tsc --build --clean && tsc -p ./",
     "watch": "tsc -watch -p ./",
     "lint": "eslint src",
     "test:unit": "mocha --require ./out/test/unit/setup.js ./out/test/unit/**/*.test.js",
     "test:integration": "vscode-test",
-    "test": "npm run compile && npm run test:unit"
+    "test": "pnpm compile && pnpm test:unit"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
@@ -207,5 +203,8 @@
     "@hackmd/react-vsc-treeview": "^0.2.5",
     "ptt-client": "^0.8.1",
     "react": "^18.3.1"
+  },
+  "overrides": {
+    "terminal.js": "1.0.10"
   }
 }

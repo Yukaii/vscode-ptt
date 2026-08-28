@@ -1,0 +1,329 @@
+diff --git a/dist/sites/ptt/bot.js b/dist/sites/ptt/bot.js
+index 0cb0b93c5d1039953bd006556e2edb58deb765fa..abdbbbee8e98b6187a4b850af933b15960754dc1 100644
+--- a/dist/sites/ptt/bot.js
++++ b/dist/sites/ptt/bot.js
+@@ -795,10 +795,22 @@ function (_EventEmitter) {
+         var offsets,
+             getLine,
+             favorites,
++            seenKeys,
+             stopLoop,
++            addedInThisPage,
+             i,
+             line,
+-            favorite,
++            bn,
++            boardname,
++            category,
++            title,
++            users,
++            admin,
++            folder,
++            divider,
++            itemKey,
++            prevTopLine,
++            newTopLine,
+             _args9 = arguments;
+         return _regenerator["default"].wrap(function _callee9$(_context9) {
+           while (1) {
+@@ -818,113 +830,124 @@ function (_EventEmitter) {
+                 return this.enterFavorite(offsets);
+ 
+               case 5:
++                _context9.next = 7;
++                return (0, _sleepPromise["default"])(200);
++
++              case 7:
+                 getLine = this.getLine;
+                 favorites = [];
++                seenKeys = new Set();
+ 
+-              case 7:
++              case 10:
+                 if (!true) {
+-                  _context9.next = 37;
++                  _context9.next = 45;
+                   break;
+                 }
+ 
+                 stopLoop = false;
++                addedInThisPage = 0;
+                 i = 3;
+ 
+-              case 10:
++              case 14:
+                 if (!(i < 23)) {
+-                  _context9.next = 31;
++                  _context9.next = 33;
+                   break;
+                 }
+ 
+                 line = getLine(i).str;
+ 
+                 if (!(line.trim() === '')) {
+-                  _context9.next = 15;
++                  _context9.next = 19;
+                   break;
+                 }
+ 
+                 stopLoop = true;
+-                return _context9.abrupt("break", 31);
++                return _context9.abrupt("break", 33);
+ 
+-              case 15:
+-                favorite = {
+-                  bn: (0, _char.substrWidth)('dbcs', line, 3, 4).trim() | 0,
+-                  read: (0, _char.substrWidth)('dbcs', line, 8, 2).trim() === '',
+-                  boardname: (0, _char.substrWidth)('dbcs', line, 10, 12).trim(),
+-                  category: (0, _char.substrWidth)('dbcs', line, 23, 4).trim(),
+-                  title: (0, _char.substrWidth)('dbcs', line, 30, 31),
+-                  users: (0, _char.substrWidth)('dbcs', line, 62, 5).trim(),
+-                  admin: (0, _char.substrWidth)('dbcs', line, 67).trim(),
+-                  folder: false,
+-                  divider: false
+-                };
+-
+-                if (!(favorite.bn !== favorites.length + 1)) {
+-                  _context9.next = 19;
+-                  break;
++              case 19:
++                bn = (0, _char.substrWidth)('dbcs', line, 3, 4).trim() | 0;
++                boardname = (0, _char.substrWidth)('dbcs', line, 10, 12).trim();
++                category = (0, _char.substrWidth)('dbcs', line, 23, 4).trim();
++                title = (0, _char.substrWidth)('dbcs', line, 30, 31);
++                users = (0, _char.substrWidth)('dbcs', line, 62, 5).trim();
++                admin = (0, _char.substrWidth)('dbcs', line, 67).trim();
++                folder = false;
++                divider = false;
++
++                if (boardname === 'MyFavFolder') {
++                  title = (0, _char.substrWidth)('dbcs', line, 30);
++                  users = '';
++                  admin = '';
++                  folder = true;
++                } else if (boardname === '------------') {
++                  title = (0, _char.substrWidth)('dbcs', line, 30);
++                  users = '';
++                  admin = '';
++                  divider = true;
+                 }
+ 
+-                stopLoop = true;
+-                return _context9.abrupt("break", 31);
++                itemKey = "".concat(bn, "-").concat(boardname, "-").concat(title.trim());
++
++                if (!seenKeys.has(itemKey)) {
++                  seenKeys.add(itemKey);
++                  favorites.push({
++                    bn: bn,
++                    read: (0, _char.substrWidth)('dbcs', line, 8, 2).trim() === '',
++                    boardname: boardname,
++                    category: category,
++                    title: title,
++                    users: users,
++                    admin: admin,
++                    folder: folder,
++                    divider: divider
++                  });
++                  addedInThisPage++;
++                }
+ 
+-              case 19:
+-                _context9.t0 = favorite.boardname;
+-                _context9.next = _context9.t0 === 'MyFavFolder' ? 22 : _context9.t0 === '------------' ? 24 : 26;
++              case 30:
++                i++;
++                _context9.next = 14;
+                 break;
+ 
+-              case 22:
+-                favorite = _objectSpread({}, favorite, {
+-                  title: (0, _char.substrWidth)('dbcs', line, 30),
+-                  users: '',
+-                  admin: '',
+-                  folder: true
+-                });
+-                return _context9.abrupt("break", 27);
++              case 33:
++                if (!stopLoop && addedInThisPage !== 0) {
++                  _context9.next = 35;
++                  break;
++                }
+ 
+-              case 24:
+-                favorite = _objectSpread({}, favorite, {
+-                  title: (0, _char.substrWidth)('dbcs', line, 30),
+-                  users: '',
+-                  admin: '',
+-                  divider: true
+-                });
+-                return _context9.abrupt("break", 27);
++                return _context9.abrupt("break", 45);
+ 
+-              case 26:
+-                return _context9.abrupt("break", 27);
++              case 35:
++                prevTopLine = getLine(3).str;
++                _context9.next = 38;
++                return this.send(_keymap["default"].PgDown);
+ 
+-              case 27:
+-                favorites.push(favorite);
++              case 38:
++                _context9.next = 40;
++                return (0, _sleepPromise["default"])(200);
+ 
+-              case 28:
+-                i++;
+-                _context9.next = 10;
+-                break;
++              case 40:
++                newTopLine = getLine(3).str;
+ 
+-              case 31:
+-                if (!stopLoop) {
+-                  _context9.next = 33;
++                if (!(newTopLine === prevTopLine)) {
++                  _context9.next = 43;
+                   break;
+                 }
+ 
+-                return _context9.abrupt("break", 37);
+-
+-              case 33:
+-                _context9.next = 35;
+-                return this.send(_keymap["default"].PgDown);
++                return _context9.abrupt("break", 45);
+ 
+-              case 35:
+-                _context9.next = 7;
++              case 43:
++                _context9.next = 10;
+                 break;
+ 
+-              case 37:
+-                _context9.next = 39;
++              case 45:
++                _context9.next = 47;
+                 return this.enterIndex();
+ 
+-              case 39:
++              case 47:
+                 return _context9.abrupt("return", favorites);
+ 
+-              case 40:
++              case 48:
+               case "end":
+                 return _context9.stop();
+             }
+diff --git a/src/sites/ptt/bot.js b/src/sites/ptt/bot.js
+index 2a9229c4694fed2a79271e397e5676a6c45210ee..846d979264592b5a25f83a9a8c0a3f62eea1c0d2 100644
+--- a/src/sites/ptt/bot.js
++++ b/src/sites/ptt/bot.js
+@@ -339,61 +339,74 @@ class Bot extends EventEmitter {
+       offsets = [offsets];
+     }
+     await this.enterFavorite(offsets);
++    await sleep(200);
+     const { getLine } = this;
+ 
+     const favorites = [];
++    const seenKeys = new Set();
+ 
+     while (true) {
+       let stopLoop = false;
++      let addedInThisPage = 0;
+       for(let i=3; i<23; i++) {
+         let line = getLine(i).str;
+         if (line.trim() === '') {
+           stopLoop = true;
+           break;
+         }
+-        let favorite = {
+-          bn:        substrWidth('dbcs', line,  3,  4).trim() | 0,
+-          read:      substrWidth('dbcs', line,  8,  2).trim() === '',
+-          boardname: substrWidth('dbcs', line, 10, 12).trim(),
+-          category:  substrWidth('dbcs', line, 23,  4).trim(),
+-          title:     substrWidth('dbcs', line, 30, 31),
+-          users:     substrWidth('dbcs', line, 62,  5).trim(),
+-          admin:     substrWidth('dbcs', line, 67    ).trim(),
+-          folder:    false,
+-          divider:   false,
+-        };
+-        if (favorite.bn !== favorites.length + 1) {
+-          stopLoop = true;
+-          break;
+-        }
+-        switch (favorite.boardname) {
++        let bn = substrWidth('dbcs', line,  3,  4).trim() | 0;
++        let boardname = substrWidth('dbcs', line, 10, 12).trim();
++        let category = substrWidth('dbcs', line, 23,  4).trim();
++        let title = substrWidth('dbcs', line, 30, 31);
++        let users = substrWidth('dbcs', line, 62,  5).trim();
++        let admin = substrWidth('dbcs', line, 67    ).trim();
++        let folder = false;
++        let divider = false;
++
++        switch (boardname) {
+           case 'MyFavFolder':
+-            favorite = {
+-              ...favorite,
+-              title:  substrWidth('dbcs', line, 30),
+-              users: '',
+-              admin: '',
+-              folder: true,
+-            };
++            title = substrWidth('dbcs', line, 30);
++            users = '';
++            admin = '';
++            folder = true;
+             break;
+           case '------------':
+-            favorite = {
+-              ...favorite,
+-              title:  substrWidth('dbcs', line, 30),
+-              users: '',
+-              admin: '',
+-              divider: true,
+-            };
++            title = substrWidth('dbcs', line, 30);
++            users = '';
++            admin = '';
++            divider = true;
+             break;
+           default:
+             break;
+         }
+-        favorites.push(favorite);
++
++        const itemKey = `${bn}-${boardname}-${title.trim()}`;
++        if (!seenKeys.has(itemKey)) {
++          seenKeys.add(itemKey);
++          favorites.push({
++            bn,
++            read: substrWidth('dbcs', line,  8,  2).trim() === '',
++            boardname,
++            category,
++            title,
++            users,
++            admin,
++            folder,
++            divider,
++          });
++          addedInThisPage++;
++        }
+       }
+-      if (stopLoop) {
++      if (stopLoop || addedInThisPage === 0) {
+         break;
+       }
++      const prevTopLine = getLine(3).str;
+       await this.send(key.PgDown);
++      await sleep(200);
++      const newTopLine = getLine(3).str;
++      if (newTopLine === prevTopLine) {
++        break;
++      }
+     }
+ 
+     await this.enterIndex();

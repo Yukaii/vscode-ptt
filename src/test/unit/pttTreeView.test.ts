@@ -3,11 +3,13 @@ import type * as vscode from 'vscode';
 import { PttTreeViewController, getBoardNameFromItem } from '../../views/PttTreeView';
 import { MockPttClient } from './mockPttClient';
 import store from '../../store';
+import type { FavoriteBoardItem } from '../../types';
 
 describe('PttTreeView Component and Controller Tests', () => {
   beforeEach(() => {
     store.release('Gossiping');
     store.release('C_Chat');
+    store.release('Stock');
   });
 
   describe('getBoardNameFromItem', () => {
@@ -41,11 +43,48 @@ describe('PttTreeView Component and Controller Tests', () => {
   });
 
   describe('PttTreeViewController', () => {
-    it('creates and renders TreeView', () => {
+    it('creates and renders TreeView with favorites', async () => {
       const mockPtt = new MockPttClient(true);
+      const mockFavorites: FavoriteBoardItem[] = [
+        {
+          bn: '1',
+          read: 'true',
+          boardname: 'Gossiping',
+          category: '綜合',
+          title: '八卦板',
+          users: '1000',
+          admin: 'admin',
+          folder: false,
+          divider: false
+        },
+        {
+          bn: '2',
+          read: 'true',
+          boardname: '------------',
+          category: '',
+          title: '------------',
+          users: '',
+          admin: '',
+          folder: false,
+          divider: true
+        },
+        {
+          bn: '3',
+          read: 'true',
+          boardname: 'C_Chat',
+          category: '動漫',
+          title: '希洽板',
+          users: '500',
+          admin: 'admin',
+          folder: false,
+          divider: false
+        }
+      ];
+      mockPtt.favorites = mockFavorites;
+
       const mockContext = {
         globalState: {
-          get: (key: string) => (key === 'boardlist' ? ['Gossiping', 'C_Chat'] : undefined)
+          get: (key: string) => (key === 'boardlist' ? ['Stock'] : undefined)
         }
       } as unknown as vscode.ExtensionContext;
 
@@ -56,12 +95,47 @@ describe('PttTreeView Component and Controller Tests', () => {
       assert.ok(treeView);
       assert.strictEqual(controller.getTreeView(), treeView);
 
-      // Should support setPtt and refresh without crashing
+      // Support setPtt and refresh without crashing
       controller.setPtt(mockPtt);
       controller.refresh();
 
+      // Render when logged out
       isLoggedIn = false;
       controller.refresh();
+    });
+
+    it('renders with empty favorites gracefully', async () => {
+      const mockPtt = new MockPttClient(true);
+      mockPtt.favorites = [];
+
+      const mockContext = {
+        globalState: {
+          get: () => undefined
+        }
+      } as unknown as vscode.ExtensionContext;
+
+      const controller = new PttTreeViewController(mockPtt, mockContext, () => true);
+      const treeView = controller.render();
+
+      assert.ok(treeView);
+    });
+
+    it('renders when getFavorite throws an error', async () => {
+      const mockPtt = new MockPttClient(true);
+      mockPtt.getFavorite = async () => {
+        throw new Error('Network error');
+      };
+
+      const mockContext = {
+        globalState: {
+          get: () => undefined
+        }
+      } as unknown as vscode.ExtensionContext;
+
+      const controller = new PttTreeViewController(mockPtt, mockContext, () => true);
+      const treeView = controller.render();
+
+      assert.ok(treeView);
     });
   });
 });

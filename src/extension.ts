@@ -96,13 +96,26 @@ export function checkLogin () {
   return ptt?.state?.login ?? false;
 }
 
+let activeConnectPromise: Promise<boolean> | null = null;
+let activeLoginPromise: Promise<boolean> | null = null;
+
 export async function ensureConnectedPttClient (): Promise<boolean> {
   if (ptt?.state?.connect) {
     return true;
   }
-  const newClient = await pttClientFactory();
-  setPttClient(newClient);
-  return Boolean(newClient?.state?.connect);
+  if (activeConnectPromise) {
+    return activeConnectPromise;
+  }
+  activeConnectPromise = (async () => {
+    try {
+      const newClient = await pttClientFactory();
+      setPttClient(newClient);
+      return Boolean(newClient?.state?.connect);
+    } finally {
+      activeConnectPromise = null;
+    }
+  })();
+  return activeConnectPromise;
 }
 
 export async function getLoginCredential (silent = false): Promise<{ username?: string; password?: string }> {
@@ -145,19 +158,38 @@ export async function getLoginCredential (silent = false): Promise<{ username?: 
   return { username: inputUsername, password: inputPassword };
 }
 
-export async function login (silent = false) {
+export async function login (silent = false): Promise<boolean> {
   const isSilent = silent === true;
   if (checkLogin()) {
-    return;
+    return true;
   }
 
+  if (activeLoginPromise) {
+    const res = await activeLoginPromise;
+    if (res || isSilent) {
+      return res;
+    }
+  }
+
+  activeLoginPromise = (async () => {
+    try {
+      return await performLogin(isSilent);
+    } finally {
+      activeLoginPromise = null;
+    }
+  })();
+
+  return activeLoginPromise;
+}
+
+async function performLogin (isSilent: boolean): Promise<boolean> {
   // Ensure ptt client is connected
   const connected = await ensureConnectedPttClient();
   if (!connected) {
     if (!isSilent) {
       vscode.window.showWarningMessage('無法連線至 PTT 伺服器，請稍後再試。');
     }
-    return;
+    return false;
   }
 
   let { username, password } = await getLoginCredential(isSilent);
@@ -167,7 +199,7 @@ export async function login (silent = false) {
     if (!isSilent) {
       vscode.window.showWarningMessage('需要帳密才能使用 VSCode PTT 噢！');
     }
-    return;
+    return false;
   }
 
   const attemptLogin = async (user: string, pass: string): Promise<boolean> => {
@@ -205,7 +237,7 @@ export async function login (silent = false) {
         if (inputPass !== undefined) {
           freshPassword = inputPass;
         } else {
-          return;
+          return false;
         }
       }
       username = freshUsername;
@@ -222,11 +254,13 @@ export async function login (silent = false) {
     if (!isSilent) {
       vscode.window.showInformationMessage(`以 ${username} 登入成功！`);
     }
+    return true;
   } else {
     updateLoginContext();
     if (!isSilent) {
       vscode.window.showWarningMessage('登入失敗 QQ');
     }
+    return false;
   }
 }
 
@@ -261,12 +295,13 @@ export async function activate(context: vscode.ExtensionContext) {
   ctx = context;
 
   if (!ptt) {
-    ptt = await intializePttClient();
+    const initialClient = await intializePttClient();
+    setPttClient(initialClient);
   }
 
   pttViewController = new PttTreeViewController(ptt, ctx, checkLogin);
   pttViewController.render();
-  pttProvider = pttViewController;
+  setPttProvider(pttViewController);
 
   contentProvider = new ContentProvider(ptt, async () => {
     if (!checkLogin()) {
@@ -274,6 +309,8 @@ export async function activate(context: vscode.ExtensionContext) {
     }
     return checkLogin();
   });
+  setContentProvider(contentProvider);
+
   context.subscriptions.push(
     vscode.workspace.registerFileSystemProvider(ContentProvider.scheme, contentProvider, {
       isReadonly: true,
@@ -290,6 +327,7 @@ export async function activate(context: vscode.ExtensionContext) {
       ctx.globalState.update('username', null);
       ctx.globalState.update('password', null);
       ctx.globalState.update('boardlist', []);
+      store.clearAll();
       refreshTreeView();
 
       if (checkLogin()) {
@@ -367,6 +405,7 @@ export async function activate(context: vscode.ExtensionContext) {
     }
 
     contentProvider?.clearCache();
+    store.clearFavorites();
     ptt.resetSearchCondition();
     const boards = store.getBoardNames();
     for (const boardname of boards) {

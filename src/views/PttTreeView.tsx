@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, type FC } from 'react';
 import * as vscode from 'vscode';
 import ReactTreeView, { TreeItem } from '@hackmd/react-vsc-treeview';
 import store, { type ArticleListItem } from '../store';
-import type { IPttClient } from '../types';
+import type { IPttClient, FavoriteBoardItem } from '../types';
 
 export interface PttTreeViewProps {
   ptt: IPttClient;
@@ -92,10 +92,11 @@ export const ArticleNode: FC<{
 
 export const BoardNode: FC<{
   boardName: string;
+  boardTitle?: string;
   ptt: IPttClient;
   isLoggedIn: boolean;
   version?: number;
-}> = ({ boardName, ptt, isLoggedIn, version }) => {
+}> = ({ boardName, boardTitle, ptt, isLoggedIn, version }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -127,7 +128,8 @@ export const BoardNode: FC<{
 
   const articles = store.asList(boardName);
   const articleCount = articles.length;
-  const description = articleCount > 0 ? `${articleCount} 篇` : undefined;
+  const description = articleCount > 0 ? `${articleCount} 篇` : boardTitle;
+  const tooltip = boardTitle ? `${boardName} (${boardTitle})` : boardName;
   const oldestSn = store.lastSn(boardName);
   const hasReachedBeginning = oldestSn <= 1 && articleCount > 0;
 
@@ -136,6 +138,7 @@ export const BoardNode: FC<{
       id={`board-${boardName}`}
       label={boardName}
       description={description}
+      tooltip={tooltip}
       iconPath={new vscode.ThemeIcon('bookmark')}
       contextValue="board"
     >
@@ -203,6 +206,100 @@ export const BoardNode: FC<{
   );
 };
 
+export const FavoriteNode: FC<{
+  ptt: IPttClient;
+  isLoggedIn: boolean;
+  version?: number;
+}> = ({ ptt, isLoggedIn, version }) => {
+  const [favorites, setFavorites] = useState<FavoriteBoardItem[]>(() => store.getFavorites());
+  const [loading, setLoading] = useState(() => isLoggedIn && !store.hasFavorites());
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchFavorites = useCallback(async (force = false) => {
+    if (!isLoggedIn || !ptt?.state?.login) {
+      return;
+    }
+    if (!force && store.hasFavorites()) {
+      setFavorites(store.getFavorites());
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await ptt.getFavorite();
+      const validFavorites = (data || []).filter(item => !item.divider && Boolean(item.boardname?.trim()));
+      store.setFavorites(validFavorites);
+      setFavorites(validFavorites);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : '載入我的最愛失敗';
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  }, [ptt, isLoggedIn]);
+
+  useEffect(() => {
+    if (isLoggedIn && ptt?.state?.login) {
+      fetchFavorites(false);
+    } else {
+      setFavorites([]);
+      setLoading(false);
+    }
+  }, [version, isLoggedIn, fetchFavorites]);
+
+  return (
+    <TreeItem
+      id="favorite-root"
+      label="我的最愛"
+      iconPath={new vscode.ThemeIcon('star')}
+      contextValue="favoriteRoot"
+      expanded={true}
+    >
+      {loading && (
+        <TreeItem
+          id="favorite-loading"
+          label="載入我的最愛中..."
+          iconPath={new vscode.ThemeIcon('loading~spin')}
+        />
+      )}
+
+      {error && (
+        <TreeItem
+          id="favorite-error"
+          label={`載入失敗: ${error}`}
+          description="點擊重試"
+          iconPath={new vscode.ThemeIcon('error')}
+          command={{
+            command: 'ptt.refresh-article',
+            title: '重新整理'
+          }}
+        />
+      )}
+
+      {!loading && !error && favorites.length === 0 && (
+        <TreeItem
+          id="favorite-empty"
+          label="我的最愛目前沒有看板"
+          iconPath={new vscode.ThemeIcon('info')}
+        />
+      )}
+
+      {!loading &&
+        favorites.map(fav => (
+          <BoardNode
+            key={fav.boardname}
+            boardName={fav.boardname}
+            boardTitle={fav.title?.trim()}
+            ptt={ptt}
+            isLoggedIn={isLoggedIn}
+            version={version}
+          />
+        ))}
+    </TreeItem>
+  );
+};
+
 export const PttTreeView: FC<PttTreeViewProps> = ({ ptt, context, isLoggedIn, version }) => {
   const [boardList, setBoardList] = useState<string[]>(() => context?.globalState?.get<string[]>('boardlist') || []);
 
@@ -223,39 +320,34 @@ export const PttTreeView: FC<PttTreeViewProps> = ({ ptt, context, isLoggedIn, ve
     );
   }
 
-  if (boardList.length === 0) {
-    return (
-      <>
-        <TreeItem
-          id="no-boards"
-          label="尚未訂閱任何看板"
-          description="點擊新增看板"
-          iconPath={new vscode.ThemeIcon('add')}
-          command="ptt.add-board"
-        />
-        <TreeItem
-          id="pick-favorite"
-          label="從我的最愛匯入看板"
-          iconPath={new vscode.ThemeIcon('star')}
-          command="ptt.favorite-board"
-        />
-      </>
-    );
-  }
-
-  const sortedBoards = [...boardList].sort();
+  const customBoards = boardList.filter(Boolean);
 
   return (
     <>
-      {sortedBoards.map(boardName => (
-        <BoardNode
-          key={boardName}
-          boardName={boardName}
-          ptt={ptt}
-          isLoggedIn={isLoggedIn}
-          version={version}
-        />
-      ))}
+      <FavoriteNode
+        ptt={ptt}
+        isLoggedIn={isLoggedIn}
+        version={version}
+      />
+      {customBoards.length > 0 && (
+        <TreeItem
+          id="custom-boards-root"
+          label="其他看板"
+          iconPath={new vscode.ThemeIcon('bookmark')}
+          contextValue="customBoardsRoot"
+          expanded={true}
+        >
+          {customBoards.sort().map(boardName => (
+            <BoardNode
+              key={`custom-${boardName}`}
+              boardName={boardName}
+              ptt={ptt}
+              isLoggedIn={isLoggedIn}
+              version={version}
+            />
+          ))}
+        </TreeItem>
+      )}
     </>
   );
 };

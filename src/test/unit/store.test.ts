@@ -175,4 +175,32 @@ describe('ArticleStore Unit Tests', () => {
     assert.strictEqual(store.isEmpty('Gossiping'), true);
     assert.strictEqual(store.asList('Gossiping').length, 0);
   });
+
+  it('manages favorites caching and clearAll correctly', () => {
+    store.clearAll();
+    assert.strictEqual(store.hasFavorites(), false);
+    assert.deepStrictEqual(store.getFavorites(), []);
+
+    store.setFavorites([
+      {
+        bn: '1',
+        read: 'true',
+        boardname: 'Gossiping',
+        category: '綜合',
+        title: '八卦板',
+        users: '1000',
+        admin: 'admin',
+        folder: false,
+        divider: false
+      }
+    ]);
+
+    assert.strictEqual(store.hasFavorites(), true);
+    assert.strictEqual(store.getFavorites().length, 1);
+    assert.strictEqual(store.getFavorites()[0].boardname, 'Gossiping');
+
+    store.clearFavorites();
+    assert.strictEqual(store.hasFavorites(), false);
+    assert.deepStrictEqual(store.getFavorites(), []);
+  });
 });

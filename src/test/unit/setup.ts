@@ -11,14 +11,19 @@ export const mockVscode = {
     Readonly: 1
   },
   FileSystemError: class FileSystemError extends Error {
+    public code: string;
+    constructor(message: string, code = '') {
+      super(message);
+      this.code = code;
+    }
     static FileNotFound(_uri?: unknown) {
-      return new FileSystemError('FileNotFound');
+      return new FileSystemError('FileNotFound', 'FileNotFound');
     }
     static NoPermissions(message?: string) {
-      return new FileSystemError(message || 'NoPermissions');
+      return new FileSystemError(message || 'NoPermissions', 'NoPermissions');
     }
     static Unavailable(message?: string) {
-      return new FileSystemError(message || 'Unavailable');
+      return new FileSystemError(message || 'Unavailable', 'Unavailable');
     }
   },
   Disposable: class {

@@ -1,3 +1,5 @@
+import type { FavoriteBoardItem } from './types';
+
 export interface ArticleListItem {
   sn: number;
   push: string;
@@ -11,6 +13,33 @@ export interface ArticleListItem {
 class ArticleStore {
   private articleStore: { [boardname: string]: { [sn: number]: ArticleListItem } } = {};
   private articleIds: { [boardname: string]: Array<number> } = {};
+  private favorites: FavoriteBoardItem[] = [];
+  private favoritesLoaded = false;
+
+  getFavorites(): FavoriteBoardItem[] {
+    return this.favorites;
+  }
+
+  setFavorites(favorites: FavoriteBoardItem[]): void {
+    this.favorites = favorites || [];
+    this.favoritesLoaded = true;
+  }
+
+  hasFavorites(): boolean {
+    return this.favoritesLoaded;
+  }
+
+  clearFavorites(): void {
+    this.favorites = [];
+    this.favoritesLoaded = false;
+  }
+
+  clearAll(): void {
+    this.articleStore = {};
+    this.articleIds = {};
+    this.favorites = [];
+    this.favoritesLoaded = false;
+  }
 
   asList(boardname: string): ArticleListItem[] {
     return (this.articleIds[boardname] || [])
