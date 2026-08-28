@@ -4,11 +4,17 @@ exports.Terminal = void 0;
 const state_1 = require("./state");
 class Terminal {
     constructor(options = {}) {
+        this.incompleteChunk = '';
         this.state = new state_1.TermState(options);
     }
-    write(data) {
-        if (!data) {
+    write(incomingData) {
+        if (!incomingData) {
             return;
+        }
+        let data = incomingData;
+        if (this.incompleteChunk) {
+            data = this.incompleteChunk + data;
+            this.incompleteChunk = '';
         }
         let i = 0;
         const len = data.length;
@@ -51,6 +57,10 @@ class Terminal {
                     this.handleEsc(escMatch[1]);
                     i += escMatch[0].length;
                     continue;
+                }
+                if (rest.length < 16) {
+                    this.incompleteChunk = rest;
+                    break;
                 }
                 i++;
                 continue;

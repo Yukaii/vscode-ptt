@@ -268,8 +268,8 @@ export class Bot extends EventEmitter {
   }
 
   private _checkArticleWithHeader(): boolean {
-    const authorArea = substrWidth('dbcs', this.getLine(0).str, 0, 6).trim();
-    return authorArea === '作者';
+    const line0 = this.getLine(0).str;
+    return line0.includes('作者') || line0.includes('標題');
   }
 
   public async enterIndex(): Promise<boolean> {
@@ -283,8 +283,8 @@ export class Bot extends EventEmitter {
     const lowerBoard = boardname.toLowerCase();
     const { getLine } = this;
 
-    for (let t = 0; t < 6; t++) {
-      if (getLine(23).str.includes('按任意鍵繼續') || getLine(22).str.includes('按任意鍵繼續')) {
+    for (let t = 0; t < 8; t++) {
+      if (getLine(23).str.includes('任意鍵') || getLine(22).str.includes('任意鍵')) {
         await this.send(' ');
       }
       if (getLine(0).str.toLowerCase().includes(lowerBoard)) {
@@ -483,6 +483,7 @@ export class Bot extends EventEmitter {
 
       const { getLine } = this;
       await this.send(`${sn}${keymap.Enter}${keymap.Enter}`);
+      await sleep(200);
 
       const article: ArticleDetail = {
         sn,
@@ -509,28 +510,36 @@ export class Bot extends EventEmitter {
     const { getLine } = this;
     const lines: string[] = [];
 
-    lines.push(getLine(0).str);
-
-    let attempts = 0;
-    while (!getLine(23).str.includes('100%') && attempts < 100) {
-      attempts++;
-      for (let i = 1; i < 23; i++) {
-        lines.push(getLine(i).str);
-      }
-      await this.send(keymap.PgDown);
+    for (let i = 0; i < 23; i++) {
+      lines.push(getLine(i).str);
     }
 
-    const lastLine = lines[lines.length - 1];
-    for (let i = 0; i < 23; i++) {
-      if (getLine(i).str === lastLine) {
-        for (let j = i + 1; j < 23; j++) {
-          lines.push(getLine(j).str);
+    let attempts = 0;
+    while (!getLine(23).str.includes('100%') && attempts < 20) {
+      attempts++;
+      const prevBottom = lines[lines.length - 1];
+
+      await this.send(keymap.PgDown);
+      await sleep(100);
+
+      let overlapIndex = -1;
+      for (let i = 0; i < 23; i++) {
+        if (getLine(i).str === prevBottom && prevBottom.trim() !== '') {
+          overlapIndex = i;
         }
+      }
+
+      const startIndex = overlapIndex >= 0 ? overlapIndex + 1 : 0;
+      for (let i = startIndex; i < 23; i++) {
+        lines.push(getLine(i).str);
+      }
+
+      if (getLine(23).str.includes('100%')) {
         break;
       }
     }
 
-    while (lines.length > 0 && lines[lines.length - 1].length === 0) {
+    while (lines.length > 0 && lines[lines.length - 1].trim().length === 0) {
       lines.pop();
     }
 

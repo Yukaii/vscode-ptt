@@ -219,8 +219,8 @@ class Bot extends eventemitter3_1.default {
         return null;
     }
     _checkArticleWithHeader() {
-        const authorArea = (0, char_1.substrWidth)('dbcs', this.getLine(0).str, 0, 6).trim();
-        return authorArea === '作者';
+        const line0 = this.getLine(0).str;
+        return line0.includes('作者') || line0.includes('標題');
     }
     async enterIndex() {
         await this.send(keymap_1.default.ArrowLeft.repeat(10));
@@ -231,8 +231,8 @@ class Bot extends eventemitter3_1.default {
         await this.send(`s${boardname}${keymap_1.default.Enter} ${keymap_1.default.Home}${keymap_1.default.End}`);
         const lowerBoard = boardname.toLowerCase();
         const { getLine } = this;
-        for (let t = 0; t < 6; t++) {
-            if (getLine(23).str.includes('按任意鍵繼續') || getLine(22).str.includes('按任意鍵繼續')) {
+        for (let t = 0; t < 8; t++) {
+            if (getLine(23).str.includes('任意鍵') || getLine(22).str.includes('任意鍵')) {
                 await this.send(' ');
             }
             if (getLine(0).str.toLowerCase().includes(lowerBoard)) {
@@ -407,6 +407,7 @@ class Bot extends eventemitter3_1.default {
             }
             const { getLine } = this;
             await this.send(`${sn}${keymap_1.default.Enter}${keymap_1.default.Enter}`);
+            await sleep(200);
             const article = {
                 sn,
                 author: '',
@@ -427,25 +428,30 @@ class Bot extends eventemitter3_1.default {
     async getLines() {
         const { getLine } = this;
         const lines = [];
-        lines.push(getLine(0).str);
+        for (let i = 0; i < 23; i++) {
+            lines.push(getLine(i).str);
+        }
         let attempts = 0;
-        while (!getLine(23).str.includes('100%') && attempts < 100) {
+        while (!getLine(23).str.includes('100%') && attempts < 20) {
             attempts++;
-            for (let i = 1; i < 23; i++) {
+            const prevBottom = lines[lines.length - 1];
+            await this.send(keymap_1.default.PgDown);
+            await sleep(100);
+            let overlapIndex = -1;
+            for (let i = 0; i < 23; i++) {
+                if (getLine(i).str === prevBottom && prevBottom.trim() !== '') {
+                    overlapIndex = i;
+                }
+            }
+            const startIndex = overlapIndex >= 0 ? overlapIndex + 1 : 0;
+            for (let i = startIndex; i < 23; i++) {
                 lines.push(getLine(i).str);
             }
-            await this.send(keymap_1.default.PgDown);
-        }
-        const lastLine = lines[lines.length - 1];
-        for (let i = 0; i < 23; i++) {
-            if (getLine(i).str === lastLine) {
-                for (let j = i + 1; j < 23; j++) {
-                    lines.push(getLine(j).str);
-                }
+            if (getLine(23).str.includes('100%')) {
                 break;
             }
         }
-        while (lines.length > 0 && lines[lines.length - 1].length === 0) {
+        while (lines.length > 0 && lines[lines.length - 1].trim().length === 0) {
             lines.pop();
         }
         return lines;

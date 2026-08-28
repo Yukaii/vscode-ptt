@@ -2,15 +2,23 @@ import { TermState } from './state';
 
 export class Terminal {
   public state: TermState;
+  private incompleteChunk = '';
 
   constructor(options: { rows?: number; columns?: number } = {}) {
     this.state = new TermState(options);
   }
 
-  write(data: string): void {
-    if (!data) {
+  write(incomingData: string): void {
+    if (!incomingData) {
       return;
     }
+
+    let data = incomingData;
+    if (this.incompleteChunk) {
+      data = this.incompleteChunk + data;
+      this.incompleteChunk = '';
+    }
+
     let i = 0;
     const len = data.length;
 
@@ -60,6 +68,11 @@ export class Terminal {
           this.handleEsc(escMatch[1]);
           i += escMatch[0].length;
           continue;
+        }
+
+        if (rest.length < 16) {
+          this.incompleteChunk = rest;
+          break;
         }
 
         i++;
