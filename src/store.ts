@@ -9,50 +9,69 @@ export interface ArticleListItem {
 }
 
 class ArticleStore {
-  private articleStore : { [boardname: string]: { [sn: number]: ArticleListItem } } = {};
-  private articleIds : { [boardname: string]: Array<number> } = {};
+  private articleStore: { [boardname: string]: { [sn: number]: ArticleListItem } } = {};
+  private articleIds: { [boardname: string]: Array<number> } = {};
 
-  asList (boardname: string) {
-    return (this.articleIds[boardname] || []).map(id => this.articleStore[boardname][id])
+  asList(boardname: string): ArticleListItem[] {
+    return (this.articleIds[boardname] || [])
+      .map(id => this.articleStore[boardname]?.[id])
+      .filter(Boolean)
       .sort((a, b) => {
-        if (a.fixed && b.fixed) {
-          return 0;
-        } else if (a.fixed) {
+        if (a.fixed && !b.fixed) {
           return -1;
-        } else {
+        }
+        if (!a.fixed && b.fixed) {
           return 1;
         }
+        return b.sn - a.sn;
       });
   }
 
-  add (boardname: string, articles: Array<ArticleListItem>) {
-    articles.forEach(article => {
-      this.articleStore[boardname] = this.articleStore[boardname] || {};
+  add(boardname: string, articles: Array<ArticleListItem>) {
+    if (!articles || articles.length === 0) {
+      return;
+    }
+    this.articleStore[boardname] = this.articleStore[boardname] || {};
+    for (const article of articles) {
       this.articleStore[boardname][article.sn] = article;
-    });
+    }
     const ids = this.articleIds[boardname] || [];
     this.articleIds[boardname] = [...new Set(ids.concat(articles.map(art => art.sn)))];
   }
-  
-  release (boardname: string) {
+
+  release(boardname: string) {
     this.articleStore[boardname] = {};
     this.articleIds[boardname] = [];
   }
 
-  lastSn (boardname: string) {
-    const list = this.asList(boardname);
-    return list.length > 0 ? list.slice(-1)[0].sn : 0;
+  /**
+   * Returns the minimum sequence number (oldest article SN) loaded for this board,
+   * excluding pinned/fixed posts. Used as the pagination cursor for loading older articles.
+   */
+  lastSn(boardname: string): number {
+    const list = this.asList(boardname).filter(a => !a.fixed && a.sn > 0);
+    if (list.length === 0) {
+      return 0;
+    }
+    return list[list.length - 1].sn;
   }
 
-  isEmpty (boardname: string)
-  {
+  minSn(boardname: string): number {
+    return this.lastSn(boardname);
+  }
+
+  maxSn(boardname: string): number {
+    const list = this.asList(boardname).filter(a => !a.fixed && a.sn > 0);
+    return list.length > 0 ? list[0].sn : 0;
+  }
+
+  isEmpty(boardname: string): boolean {
     return this.asList(boardname).length === 0;
   }
 
-  getBoardNames () {
+  getBoardNames(): string[] {
     return Object.keys(this.articleStore);
   }
-
 }
 
 export default new ArticleStore();

@@ -5,7 +5,8 @@ import key from 'ptt-client/dist/utils/keymap';
 
 (global as any).WebSocket = WebSocket;
 
-import { PttTreeDataProvider, Board } from './pttDataProvider';
+import type { PttTreeDataProvider, Board } from './pttDataProvider';
+import { PttTreeViewController, getBoardNameFromItem } from './views/PttTreeView';
 import ContentProvider from './provider';
 import store, { type ArticleListItem } from './store';
 import type { IPttClient, FavoriteBoardItem } from './types';
@@ -14,7 +15,8 @@ export type { FavoriteBoardItem } from './types';
 
 let ptt: IPttClient;
 let ctx: vscode.ExtensionContext;
-let pttProvider: PttTreeDataProvider;
+let pttProvider: PttTreeDataProvider | PttTreeViewController;
+let pttViewController: PttTreeViewController;
 let contentProvider: ContentProvider;
 
 function intializePttClient (timeoutMs = 5000): Promise<IPttClient> {
@@ -45,9 +47,15 @@ export function updateLoginContext () {
   vscode.commands.executeCommand('setContext', 'ptt:loggedIn', loggedIn);
 }
 
+export function refreshTreeView () {
+  pttViewController?.refresh();
+  (pttProvider as any)?.refresh?.();
+}
+
 export function setPttClient (client: IPttClient) {
   ptt = client;
-  pttProvider?.setPtt?.(client);
+  (pttProvider as any)?.setPtt?.(client);
+  pttViewController?.setPtt?.(client);
   contentProvider?.setPtt?.(client);
   contentProvider?.setEnsureLogin?.(async () => {
     if (!checkLogin()) {
@@ -56,8 +64,14 @@ export function setPttClient (client: IPttClient) {
     return checkLogin();
   });
   if (client?.on) {
-    client.on('stateChange', () => updateLoginContext());
-    client.on('disconnect', () => updateLoginContext());
+    client.on('stateChange', () => {
+      updateLoginContext();
+      refreshTreeView();
+    });
+    client.on('disconnect', () => {
+      updateLoginContext();
+      refreshTreeView();
+    });
   }
   updateLoginContext();
 }
@@ -66,8 +80,12 @@ export function setExtensionContext (context: vscode.ExtensionContext) {
   ctx = context;
 }
 
-export function setPttProvider (provider: PttTreeDataProvider) {
+export function setPttProvider (provider: PttTreeDataProvider | PttTreeViewController) {
   pttProvider = provider;
+}
+
+export function setPttViewController (controller: PttTreeViewController) {
+  pttViewController = controller;
 }
 
 export function setContentProvider (provider: ContentProvider) {
@@ -79,7 +97,7 @@ export function checkLogin () {
 }
 
 export async function ensureConnectedPttClient (): Promise<boolean> {
-  if (ptt && ptt.state?.connect) {
+  if (ptt?.state?.connect) {
     return true;
   }
   const newClient = await pttClientFactory();
@@ -89,8 +107,8 @@ export async function ensureConnectedPttClient (): Promise<boolean> {
 
 export async function getLoginCredential (silent = false): Promise<{ username?: string; password?: string }> {
   const isSilent = silent === true;
-  let username = ctx?.globalState?.get<string>('username');
-  let password = ctx?.globalState?.get<string>('password');
+  const username = ctx?.globalState?.get<string>('username');
+  const password = ctx?.globalState?.get<string>('password');
 
   const hasCredentials = Boolean(username && ((password !== undefined && password !== null) || username.toLowerCase() === 'guest'));
 
@@ -98,31 +116,33 @@ export async function getLoginCredential (silent = false): Promise<{ username?: 
     return { username, password: password ?? '' };
   }
 
-  username = await vscode.window.showInputBox({
+  const inputUsername = await vscode.window.showInputBox({
     placeHolder: '帳號',
     prompt: '請輸入 PTT 登入帳號',
     value: username || ''
   });
 
-  if (!username) {
+  if (!inputUsername) {
     return {};
   }
 
-  if (username.toLowerCase() === 'guest') {
-    password = '';
+  let inputPassword = '';
+  if (inputUsername.toLowerCase() === 'guest') {
+    inputPassword = '';
   } else {
-    password = await vscode.window.showInputBox({
+    const enteredPassword = await vscode.window.showInputBox({
       placeHolder: '密碼',
       prompt: '請輸入 PTT 登入密碼',
       password: true
     });
 
-    if (password === undefined) {
+    if (enteredPassword === undefined) {
       return {};
     }
+    inputPassword = enteredPassword;
   }
 
-  return { username, password };
+  return { username: inputUsername, password: inputPassword };
 }
 
 export async function login (silent = false) {
@@ -198,7 +218,7 @@ export async function login (silent = false) {
     ctx.globalState.update('username', username);
     ctx.globalState.update('password', password ?? '');
     updateLoginContext();
-    pttProvider?.refresh();
+    refreshTreeView();
     if (!isSilent) {
       vscode.window.showInformationMessage(`以 ${username} 登入成功！`);
     }
@@ -216,7 +236,7 @@ async function pickFavorite (): Promise<string | null> {
     return null;
   }
 
-  const favorites:FavoriteBoardItem[] = await ptt.getFavorite();
+  const favorites: FavoriteBoardItem[] = await ptt.getFavorite();
   // TODO: exclude subscribed boards
   const favoriteItems: vscode.QuickPickItem[] = favorites.filter(f => !f.divider).map(fav => {
     return {
@@ -229,9 +249,7 @@ async function pickFavorite (): Promise<string | null> {
   if (board){
     return board.label;
   }
-  else{
-    return null;
-  }
+  return null;
 }
 
 function setSearchCondition(type: string, criteria: string): void
@@ -246,8 +264,9 @@ export async function activate(context: vscode.ExtensionContext) {
     ptt = await intializePttClient();
   }
 
-  pttProvider = new PttTreeDataProvider(ptt, ctx);
-  vscode.window.registerTreeDataProvider('pttTree', pttProvider);
+  pttViewController = new PttTreeViewController(ptt, ctx, checkLogin);
+  pttViewController.render();
+  pttProvider = pttViewController;
 
   contentProvider = new ContentProvider(ptt, async () => {
     if (!checkLogin()) {
@@ -271,7 +290,7 @@ export async function activate(context: vscode.ExtensionContext) {
       ctx.globalState.update('username', null);
       ctx.globalState.update('password', null);
       ctx.globalState.update('boardlist', []);
-      pttProvider?.refresh();
+      refreshTreeView();
 
       if (checkLogin()) {
         // logout
@@ -284,7 +303,7 @@ export async function activate(context: vscode.ExtensionContext) {
       vscode.window.showInformationMessage('已登出 PTT');
     }
   }));
-	context.subscriptions.push(vscode.commands.registerCommand('ptt.add-board', async function () {
+	context.subscriptions.push(vscode.commands.registerCommand('ptt.add-board', async () => {
     await login();
 
     if (!checkLogin()) {
@@ -310,7 +329,7 @@ export async function activate(context: vscode.ExtensionContext) {
     const boardlist: string[] = ctx.globalState.get('boardlist') || [];
     const boards = [...new Set(boardlist.concat(boardName))];
     ctx.globalState.update('boardlist', boards.filter(Boolean));
-    pttProvider.refresh();
+    refreshTreeView();
   }));
 
   context.subscriptions.push(vscode.commands.registerCommand('ptt.show-article', async (sn, boardname) => {
@@ -322,42 +341,75 @@ export async function activate(context: vscode.ExtensionContext) {
     await vscode.window.showTextDocument(doc, vscode.ViewColumn.Active);
   }));
 
-  context.subscriptions.push(vscode.commands.registerCommand('ptt.remove-board', (board: Board) => {
+  context.subscriptions.push(vscode.commands.registerCommand('ptt.remove-board', (board: Board | unknown) => {
+    const boardname = getBoardNameFromItem(board);
+    if (!boardname) {
+      return;
+    }
     const boardlist: string[] = ctx.globalState.get('boardlist') || [];
-    const boards = boardlist.filter(b => b !== board.boardname);
+    const boards = boardlist.filter(b => b !== boardname);
     ctx.globalState.update('boardlist', boards.filter(Boolean));
-    pttProvider.refresh();
+    refreshTreeView();
   }));
 
-  context.subscriptions.push(vscode.commands.registerCommand('ptt.refresh-article', () => {
+  context.subscriptions.push(vscode.commands.registerCommand('ptt.refresh-article', async (board?: unknown) => {
     if (!checkLogin()) {
       return;
     }
+    const specificBoard = getBoardNameFromItem(board);
+    if (specificBoard) {
+      contentProvider?.clearCache(specificBoard);
+      store.release(specificBoard);
+      const articles = await ptt.getArticles(specificBoard);
+      store.add(specificBoard, articles);
+      refreshTreeView();
+      return;
+    }
+
     contentProvider?.clearCache();
     ptt.resetSearchCondition();
     const boards = store.getBoardNames();
-    boards.forEach(async (boardname: string) => {
+    for (const boardname of boards) {
       store.release(boardname);
       const articles = await ptt.getArticles(boardname);
       store.add(boardname, articles);
-      pttProvider?.refresh();
-    });
+    }
+    refreshTreeView();
   }));
 
-  context.subscriptions.push(vscode.commands.registerCommand('ptt.load-more-article', async (boardname: string) => {
+  context.subscriptions.push(vscode.commands.registerCommand('ptt.load-more-article', async (boardnameOrItem: string | unknown) => {
+    const boardname = getBoardNameFromItem(boardnameOrItem) || (typeof boardnameOrItem === 'string' ? boardnameOrItem : undefined);
+    if (!boardname) {
+      return;
+    }
     const lastSn = store.lastSn(boardname);
-    const articles = await ptt.getArticles(boardname, lastSn - 1);
-    store.add(boardname, articles);
-    pttProvider.refresh();
+    if (lastSn <= 1 && !store.isEmpty(boardname)) {
+      vscode.window.showInformationMessage('已載入此看板所有歷史文章');
+      return;
+    }
+    const targetSn = lastSn > 0 ? Math.max(lastSn - 1, 1) : 0;
+    const articles = await ptt.getArticles(boardname, targetSn);
+    if (articles?.length > 0) {
+      store.add(boardname, articles);
+    }
+    refreshTreeView();
   }));
 
-  context.subscriptions.push(vscode.commands.registerCommand('ptt.release-board', async (board: Board) => {
-    contentProvider?.clearCache(board.boardname);
-    store.release(board.boardname);
-    pttProvider.refresh();
+  context.subscriptions.push(vscode.commands.registerCommand('ptt.release-board', async (board: Board | unknown) => {
+    const boardname = getBoardNameFromItem(board);
+    if (!boardname) {
+      return;
+    }
+    contentProvider?.clearCache(boardname);
+    store.release(boardname);
+    refreshTreeView();
   }));
 
-  context.subscriptions.push(vscode.commands.registerCommand('ptt.search-board-by-push', async (board: Board) => {
+  context.subscriptions.push(vscode.commands.registerCommand('ptt.search-board-by-push', async (board: Board | unknown) => {
+    const boardname = getBoardNameFromItem(board);
+    if (!boardname) {
+      return;
+    }
     let push = await vscode.window.showInputBox({
       prompt: '輸入推文數',
       placeHolder: '0 ~ 100'
@@ -368,27 +420,30 @@ export async function activate(context: vscode.ExtensionContext) {
       push = '100';
     }
 
-    if (store.isEmpty(board.boardname) === false)
+    if (store.isEmpty(boardname) === false)
     {
-      store.release(board.boardname);
+      store.release(boardname);
     }
 
     vscode.window.showInformationMessage('開始搜尋');
     setSearchCondition("push", push);
-    const pushArticles: ArticleListItem[] = await ptt.getArticles(board.boardname);
+    const pushArticles: ArticleListItem[] = await ptt.getArticles(boardname);
     vscode.window.showInformationMessage('完成搜尋');
 
-    store.add(board.boardname, pushArticles);
-    pttProvider.refresh();
+    store.add(boardname, pushArticles);
+    refreshTreeView();
   }));
 
   context.subscriptions.push(
     vscode.commands.registerCommand('ptt.favorite-board', async () => {
       const boardlist: string[] = ctx.globalState.get('boardlist') || [];
       const boardName = await pickFavorite();
+      if (!boardName) {
+        return;
+      }
       const boards = [...new Set(boardlist.concat(boardName))];
-      ctx.globalState.update('boardlist', boards.filter(Boolean)); //check if board exist?
-      pttProvider.refresh();
+      ctx.globalState.update('boardlist', boards.filter(Boolean));
+      refreshTreeView();
     })
   );
 
