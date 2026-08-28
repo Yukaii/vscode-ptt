@@ -37,12 +37,14 @@
       {
         "command": "ptt.login",
         "title": "登入",
-        "category": "PTT"
+        "category": "PTT",
+        "icon": "$(sign-in)"
       },
       {
         "command": "ptt.logout",
         "title": "登出",
-        "category": "PTT"
+        "category": "PTT",
+        "icon": "$(sign-out)"
       },
       {
         "command": "ptt.search-article-by-push",
@@ -51,51 +53,56 @@
       },
       {
         "command": "ptt.add-board",
-        "title": "新增訂閱看板"
+        "title": "新增訂閱看板",
+        "icon": "$(add)"
       },
       {
         "command": "ptt.remove-board",
-        "title": "移除訂閱看板"
+        "title": "移除訂閱看板",
+        "icon": "$(trash)"
       },
       {
         "command": "ptt.search-board-by-push",
-        "title": "以推文數搜尋"
+        "title": "以推文數搜尋",
+        "icon": "$(search)"
       },
       {
         "command": "ptt.refresh-article",
         "title": "重新整理文章列表",
-        "icon": {
-          "light": "resources/light/refresh.svg",
-          "dark": "resources/dark/refresh.svg"
-        }
+        "icon": "$(refresh)"
       },
       {
         "command": "ptt.favorite-board",
-        "title": "從我的最愛新增訂閱"
+        "title": "從我的最愛新增訂閱",
+        "icon": "$(star)"
       }
     ],
     "menus": {
       "view/title": [
         {
           "command": "ptt.login",
-          "when": "view == pttTree"
+          "when": "view == pttTree && !ptt:loggedIn",
+          "group": "navigation"
         },
         {
           "command": "ptt.add-board",
-          "when": "view == pttTree"
-        },
-        {
-          "command": "ptt.logout",
-          "when": "view == pttTree"
+          "when": "view == pttTree && ptt:loggedIn",
+          "group": "navigation@1"
         },
         {
           "command": "ptt.favorite-board",
-          "when": "view == pttTree"
+          "when": "view == pttTree && ptt:loggedIn",
+          "group": "navigation@2"
         },
         {
           "command": "ptt.refresh-article",
-          "when": "view == pttTree",
-          "group": "navigation"
+          "when": "view == pttTree && ptt:loggedIn",
+          "group": "navigation@3"
+        },
+        {
+          "command": "ptt.logout",
+          "when": "view == pttTree && ptt:loggedIn",
+          "group": "navigation@4"
         }
       ],
       "view/item/context": [
@@ -109,6 +116,12 @@
         }
       ]
     },
+    "viewsWelcome": [
+      {
+        "view": "pttTree",
+        "contents": "尚未登入 PTT。\n[登入](command:ptt.login)"
+      }
+    ],
     "views": {
       "ptt-explorer": [
         {

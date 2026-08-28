@@ -17,6 +17,12 @@ export class MockPttClient implements IPttClient {
     this.state.connect = true;
   }
 
+  on(event: string, listener: (...args: any[]) => void) {
+    this.listeners[event] = this.listeners[event] || [];
+    this.listeners[event].push(listener);
+    return this;
+  }
+
   once(event: string, listener: (...args: any[]) => void) {
     this.listeners[event] = this.listeners[event] || [];
     this.listeners[event].push(listener);

@@ -271,5 +271,31 @@ describe('Login Unit Tests', () => {
       assert.strictEqual(checkLogin(), false);
       assert.ok(messages.warning.some(msg => msg.includes('無法連線至 PTT 伺服器')));
     });
+
+    it('updates ptt:loggedIn context key on login state change', async () => {
+      let contextKey = '';
+      let contextValue: any = null;
+      mockVscode.commands.executeCommand = async (cmd: string, key: string, val: any) => {
+        if (cmd === 'setContext') {
+          contextKey = key;
+          contextValue = val;
+        }
+      };
+
+      mockVscode.window.showInputBox = async (options: any) => {
+        if (options.placeHolder === '帳號') {
+          return 'contextuser';
+        }
+        if (options.placeHolder === '密碼') {
+          return 'contextpass';
+        }
+        return undefined;
+      };
+
+      await login(false);
+
+      assert.strictEqual(contextKey, 'ptt:loggedIn');
+      assert.strictEqual(contextValue, true);
+    });
   });
 });

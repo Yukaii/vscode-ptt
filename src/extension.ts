@@ -40,10 +40,20 @@ export function setPttClientFactory (factory: (timeoutMs?: number) => Promise<IP
   pttClientFactory = factory;
 }
 
+export function updateLoginContext () {
+  const loggedIn = checkLogin();
+  vscode.commands.executeCommand('setContext', 'ptt:loggedIn', loggedIn);
+}
+
 export function setPttClient (client: IPttClient) {
   ptt = client;
   pttProvider?.setPtt?.(client);
   contentProvider?.setPtt?.(client);
+  if (client?.on) {
+    client.on('stateChange', () => updateLoginContext());
+    client.on('disconnect', () => updateLoginContext());
+  }
+  updateLoginContext();
 }
 
 export function setExtensionContext (context: vscode.ExtensionContext) {
@@ -181,11 +191,13 @@ export async function login (silent = false) {
   if (success) {
     ctx.globalState.update('username', username);
     ctx.globalState.update('password', password ?? '');
+    updateLoginContext();
     pttProvider?.refresh();
     if (!isSilent) {
       vscode.window.showInformationMessage(`以 ${username} 登入成功！`);
     }
   } else {
+    updateLoginContext();
     if (!isSilent) {
       vscode.window.showWarningMessage('登入失敗 QQ');
     }
@@ -194,6 +206,9 @@ export async function login (silent = false) {
 
 async function pickFavorite (): Promise<string | null> {
   await login();
+  if (!checkLogin()) {
+    return null;
+  }
 
   const favorites:FavoriteBoardItem[] = await ptt.getFavorite();
   // TODO: exclude subscribed boards
@@ -231,6 +246,8 @@ export async function activate(context: vscode.ExtensionContext) {
   contentProvider = new ContentProvider(ptt);
   context.subscriptions.push(vscode.workspace.registerTextDocumentContentProvider(ContentProvider.scheme, contentProvider));
 
+  updateLoginContext();
+
   context.subscriptions.push(vscode.commands.registerCommand('ptt.login', () => login(false)));
   context.subscriptions.push(vscode.commands.registerCommand('ptt.logout', async () => {
     const res = await vscode.window.showInformationMessage('你確定要登出嗎？登出會一併清除您的訂閱看板', '好', '算了');
@@ -246,6 +263,7 @@ export async function activate(context: vscode.ExtensionContext) {
         // !FIXME: should be fixed in upstream  ptt-client library
         ptt._state.login = false;
       }
+      updateLoginContext();
 
       vscode.window.showInformationMessage('已登出 PTT');
     }
@@ -292,13 +310,16 @@ export async function activate(context: vscode.ExtensionContext) {
   }));
 
   context.subscriptions.push(vscode.commands.registerCommand('ptt.refresh-article', () => {
+    if (!checkLogin()) {
+      return;
+    }
     ptt.resetSearchCondition();
     const boards = store.getBoardNames();
     boards.forEach(async (boardname: string) => {
       store.release(boardname);
       const articles = await ptt.getArticles(boardname);
       store.add(boardname, articles);
-      pttProvider.refresh();
+      pttProvider?.refresh();
     });
   }));
 
