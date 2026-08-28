@@ -1,8 +1,16 @@
 diff --git a/dist/sites/ptt/bot.js b/dist/sites/ptt/bot.js
-index 0cb0b93c5d1039953bd006556e2edb58deb765fa..23157df51f801c78ead413572db91387aba45ff4 100644
+index 0cb0b93c5d1039953bd006556e2edb58deb765fa..cf9defd4b892cddb80177fb76d728e48ce6b22c3 100644
 --- a/dist/sites/ptt/bot.js
 +++ b/dist/sites/ptt/bot.js
-@@ -621,30 +621,43 @@ function (_EventEmitter) {
+@@ -602,6 +602,7 @@ function (_EventEmitter) {
+       /*#__PURE__*/
+       _regenerator["default"].mark(function _callee7(boardname) {
+         var offset,
++            entered,
+             searchString,
+             getLine,
+             articles,
+@@ -621,30 +622,43 @@ function (_EventEmitter) {
                  return this.enterBoard(boardname);
  
                case 3:
@@ -52,7 +60,7 @@ index 0cb0b93c5d1039953bd006556e2edb58deb765fa..23157df51f801c78ead413572db91387
                  getLine = this.getLine;
                  articles = [];
  
-@@ -664,43 +677,43 @@ function (_EventEmitter) {
+@@ -664,43 +678,43 @@ function (_EventEmitter) {
  
  
                  if (!(articles.length >= 2 && articles[0].sn === 0)) {
@@ -107,7 +115,7 @@ index 0cb0b93c5d1039953bd006556e2edb58deb765fa..23157df51f801c78ead413572db91387
                case "end":
                  return _context7.stop();
              }
-@@ -720,7 +733,7 @@ function (_EventEmitter) {
+@@ -720,7 +734,7 @@ function (_EventEmitter) {
        var _getArticle = (0, _asyncToGenerator2["default"])(
        /*#__PURE__*/
        _regenerator["default"].mark(function _callee8(boardname, sn) {
@@ -116,7 +124,7 @@ index 0cb0b93c5d1039953bd006556e2edb58deb765fa..23157df51f801c78ead413572db91387
          return _regenerator["default"].wrap(function _callee8$(_context8) {
            while (1) {
              switch (_context8.prev = _context8.next) {
-@@ -729,23 +742,42 @@ function (_EventEmitter) {
+@@ -729,23 +743,42 @@ function (_EventEmitter) {
                  return this.enterBoard(boardname);
  
                case 2:
@@ -164,7 +172,7 @@ index 0cb0b93c5d1039953bd006556e2edb58deb765fa..23157df51f801c78ead413572db91387
                  hasHeader = this._checkArticleWithHeader();
                  article = {
                    sn: sn,
-@@ -761,18 +793,18 @@ function (_EventEmitter) {
+@@ -761,18 +794,18 @@ function (_EventEmitter) {
                    article.timestamp = (0, _char.substrWidth)('dbcs', getLine(2).str, 7).trim();
                  }
  
@@ -188,7 +196,7 @@ index 0cb0b93c5d1039953bd006556e2edb58deb765fa..23157df51f801c78ead413572db91387
                case "end":
                  return _context8.stop();
              }
-@@ -795,10 +827,22 @@ function (_EventEmitter) {
+@@ -795,10 +828,26 @@ function (_EventEmitter) {
          var offsets,
              getLine,
              favorites,
@@ -208,11 +216,15 @@ index 0cb0b93c5d1039953bd006556e2edb58deb765fa..23157df51f801c78ead413572db91387
 +            divider,
 +            itemKey,
 +            prevTopLine,
++            prevLines,
++            curLines,
++            pageChanged,
++            t,
 +            newTopLine,
              _args9 = arguments;
          return _regenerator["default"].wrap(function _callee9$(_context9) {
            while (1) {
-@@ -818,113 +862,150 @@ function (_EventEmitter) {
+@@ -818,113 +867,150 @@ function (_EventEmitter) {
                  return this.enterFavorite(offsets);
  
                case 5:
@@ -426,7 +438,7 @@ index 0cb0b93c5d1039953bd006556e2edb58deb765fa..23157df51f801c78ead413572db91387
                case "end":
                  return _context9.stop();
              }
-@@ -1078,7 +1159,7 @@ function (_EventEmitter) {
+@@ -1078,7 +1164,7 @@ function (_EventEmitter) {
              switch (_context12.prev = _context12.next) {
                case 0:
                  _context12.next = 2;
@@ -435,7 +447,7 @@ index 0cb0b93c5d1039953bd006556e2edb58deb765fa..23157df51f801c78ead413572db91387
  
                case 2:
                  return _context12.abrupt("return", true);
-@@ -1168,7 +1249,7 @@ function (_EventEmitter) {
+@@ -1168,7 +1254,7 @@ function (_EventEmitter) {
                    return "".concat(offset).concat(_keymap["default"].Enter.repeat(2));
                  }).join();
                  _context14.next = 4;
