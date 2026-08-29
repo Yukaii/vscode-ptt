@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="190 181 620 620" width="24" height="24" fill="currentColor">
+  <!-- Top Line Header (Dash + Bar) -->
+  <rect x="215" y="225" width="64" height="20" opacity="0.65"/>
+  <rect x="315" y="225" width="444" height="20" opacity="0.65"/>
+
+  <!-- Left Gutter Line Dots -->
+  <rect x="247" y="302" width="32" height="32" opacity="0.65"/>
+  <rect x="247" y="402" width="32" height="32" opacity="0.65"/>
+  <rect x="247" y="503" width="32" height="32" opacity="0.65"/>
+  <rect x="247" y="604" width="32" height="32" opacity="0.65"/>
+  <rect x="247" y="704" width="32" height="32" opacity="0.65"/>
+
+  <!-- Letter P (Pixel Art Glyph) -->
+  <path fill-rule="evenodd" d="
+    M 336,302
+    H 591
+    V 348
+    H 645
+    V 496
+    H 591
+    V 559
+    H 460
+    V 691
+    H 491
+    V 736
+    H 336
+    V 691
+    H 357
+    V 348
+    H 336
+    Z
+    M 436,379
+    H 556
+    V 496
+    H 436
+    Z
+  "/>
+
+  <!-- Terminal Prompt > -->
+  <path d="
+    M 580,621 h 23 v 13 h 14 v 13 h 13 v 13 h 13 v 12 h 13 v 25 h -13 v 12 h -13 v 13 h -13 v 13 h -14 v 13 h -23 v -25 h 14 v -13 h 13 v -13 h 13 v -12 h 13 v -1 h -13 v -12 h -13 v -13 h -13 v -13 h -14 Z
+  "/>
+
+  <!-- Terminal Cursor _ -->
+  <rect x="687" y="737" width="97" height="20"/>
+</svg>

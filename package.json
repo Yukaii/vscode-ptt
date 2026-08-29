@@ -3,6 +3,7 @@
   "displayName": "VSCode 批踢踢 (VSCode PTT)",
   "description": "PTT Client for VSCode",
   "version": "0.3.2",
+  "icon": "media/logo.png",
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -168,7 +169,7 @@
         {
           "id": "ptt-explorer",
           "title": "VSCode PTT",
-          "icon": "media/dep.svg"
+          "icon": "media/activitybar.svg"
         }
       ]
     },

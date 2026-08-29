@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1c1d21"/>
+      <stop offset="50%" stop-color="#151619"/>
+      <stop offset="100%" stop-color="#111215"/>
+    </linearGradient>
+    <linearGradient id="borderGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#363840"/>
+      <stop offset="100%" stop-color="#22242a"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background App Icon Card -->
+  <rect x="2" y="2" width="996" height="996" rx="224" fill="url(#bgGrad)" stroke="url(#borderGrad)" stroke-width="3"/>
+
+  <!-- Top Line Header -->
+  <rect x="215" y="225" width="64" height="20" fill="#85858a"/>
+  <rect x="315" y="225" width="444" height="20" fill="#85858a"/>
+
+  <!-- Left Gutter Line Dots -->
+  <rect x="247" y="302" width="32" height="32" fill="#85858a"/>
+  <rect x="247" y="402" width="32" height="32" fill="#85858a"/>
+  <rect x="247" y="503" width="32" height="32" fill="#85858a"/>
+  <rect x="247" y="604" width="32" height="32" fill="#85858a"/>
+  <rect x="247" y="704" width="32" height="32" fill="#85858a"/>
+
+  <!-- Letter P (Pixel Art Glyph) -->
+  <path fill="#6872bf" fill-rule="evenodd" d="
+    M 336,302
+    H 591
+    V 348
+    H 645
+    V 496
+    H 591
+    V 559
+    H 460
+    V 691
+    H 491
+    V 736
+    H 336
+    V 691
+    H 357
+    V 348
+    H 336
+    Z
+    M 436,379
+    H 556
+    V 496
+    H 436
+    Z
+  "/>
+
+  <!-- Terminal Prompt > -->
+  <path fill="#79a665" d="
+    M 580,621 h 23 v 13 h 14 v 13 h 13 v 13 h 13 v 12 h 13 v 25 h -13 v 12 h -13 v 13 h -13 v 13 h -14 v 13 h -23 v -25 h 14 v -13 h 13 v -13 h 13 v -12 h 13 v -1 h -13 v -12 h -13 v -13 h -13 v -13 h -14 Z
+  "/>
+
+  <!-- Terminal Cursor _ -->
+  <rect x="687" y="737" width="97" height="20" fill="#79a665"/>
+</svg>
