@@ -186,7 +186,7 @@
       }
     ]
   },
-  "packageManager": "pnpm@12.0.0",
+  "packageManager": "pnpm@12.0.0+sha512.9e2e3dc3911995868dc94b8175c217c27e95408fa03b4a22749778f2b34f773b77cdd3b39ede8171b22fcd53be6a35342e9fac9948a68ef58df6488ce89a7e67",
   "scripts": {
     "vscode:prepublish": "pnpm build",
     "build": "pnpm --filter ptt-client build && esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node --minify --sourcemap",
@@ -201,25 +201,25 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
-    "@types/mocha": "^10.0.6",
-    "@types/node": "^20.11.24",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^20.19.43",
     "@types/react": "^18.3.31",
-    "@types/vscode": "^1.85.0",
-    "@types/ws": "^8.5.10",
+    "@types/vscode": "~1.85.0",
+    "@types/ws": "^8.18.1",
     "@typescript-eslint/eslint-plugin": "^8.68.0",
     "@typescript-eslint/parser": "^8.68.0",
     "@vscode/test-cli": "^0.0.15",
     "@vscode/test-electron": "^3.1.0",
     "@vscode/vsce": "^3.9.2",
-    "dotenv": "^16.4.5",
+    "dotenv": "^16.6.1",
     "esbuild": "^0.28.2",
     "eslint": "^9.39.5",
-    "glob": "^10.3.10",
-    "mocha": "^10.3.0",
+    "glob": "^10.5.0",
+    "mocha": "^10.8.2",
     "ovsx": "^1.1.1",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.68.0",
-    "ws": "^8.16.0"
+    "ws": "^8.21.3"
   },
   "dependencies": {
     "@hackmd/react-vsc-treeview": "^0.2.5",
