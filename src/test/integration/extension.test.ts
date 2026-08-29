@@ -18,6 +18,7 @@ suite('Extension Integration Tests', () => {
     assert.ok(commands.includes('ptt.remove-board'), 'ptt.remove-board should be registered');
     assert.ok(commands.includes('ptt.favorite-board'), 'ptt.favorite-board should be registered');
     assert.ok(commands.includes('ptt.refresh-article'), 'ptt.refresh-article should be registered');
+    assert.ok(commands.includes('ptt.refresh-board'), 'ptt.refresh-board should be registered');
   });
 
   test('Can execute ptt.refresh-article command without error', async () => {

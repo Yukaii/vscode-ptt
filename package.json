@@ -89,7 +89,12 @@
       },
       {
         "command": "ptt.refresh-article",
-        "title": "重新整理文章列表",
+        "title": "重新整理看板列表",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "ptt.refresh-board",
+        "title": "重新整理此看板文章",
         "icon": "$(refresh)"
       },
       {
@@ -123,12 +128,12 @@
       ],
       "view/item/context": [
         {
-          "command": "ptt.refresh-article",
+          "command": "ptt.refresh-board",
           "when": "view == pttTree && viewItem == board",
           "group": "inline@1"
         },
         {
-          "command": "ptt.refresh-article",
+          "command": "ptt.refresh-board",
           "when": "view == pttTree && viewItem == board",
           "group": "1_modification@1"
         },

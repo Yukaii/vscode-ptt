@@ -441,36 +441,35 @@ export async function activate(context: vscode.ExtensionContext) {
     refreshTreeView();
   }));
 
-  context.subscriptions.push(vscode.commands.registerCommand('ptt.refresh-article', async (board?: unknown) => {
+  context.subscriptions.push(vscode.commands.registerCommand('ptt.refresh-article', async () => {
     if (!checkLogin()) {
       return;
     }
     await vscode.window.withProgress({ location: { viewId: 'pttTree' } }, async () => {
-      const specificBoard = typeof board === 'string' ? board : getBoardNameFromItem(board);
-      if (specificBoard) {
-        logger.log(`[Refresh] Refreshing board: ${specificBoard}`);
-        contentProvider?.clearCache(specificBoard);
-        store.release(specificBoard);
-        const articles = await ptt.getArticles(specificBoard);
-        logger.log(`[Refresh] Loaded ${articles?.length || 0} articles for ${specificBoard}`);
-        store.add(specificBoard, articles);
-        refreshTreeView();
-        return;
-      }
-
-      logger.log('[Refresh] Refreshing all loaded boards and favorites...');
-      contentProvider?.clearCache();
+      logger.log('[Refresh] Refreshing board list and favorites...');
       store.clearFavorites();
       ctx.globalState.update('cachedFavorites', []);
       ptt.resetSearchCondition();
-      const boards = store.getBoardNames();
-      for (const boardname of boards) {
-        store.release(boardname);
-        const articles = await ptt.getArticles(boardname);
-        store.add(boardname, articles);
-      }
       refreshTreeView();
     });
+  }));
+
+  context.subscriptions.push(vscode.commands.registerCommand('ptt.refresh-board', async (board?: unknown) => {
+    if (!checkLogin()) {
+      return;
+    }
+    const specificBoard = typeof board === 'string' ? board : getBoardNameFromItem(board);
+    if (specificBoard) {
+      await vscode.window.withProgress({ location: { viewId: 'pttTree' } }, async () => {
+        logger.log(`[RefreshBoard] Refreshing board: ${specificBoard}`);
+        contentProvider?.clearCache(specificBoard);
+        store.release(specificBoard);
+        const articles = await ptt.getArticles(specificBoard);
+        logger.log(`[RefreshBoard] Loaded ${articles?.length || 0} articles for ${specificBoard}`);
+        store.add(specificBoard, articles);
+        refreshTreeView();
+      });
+    }
   }));
 
   context.subscriptions.push(vscode.commands.registerCommand('ptt.load-more-article', async (boardnameOrItem: string | unknown) => {

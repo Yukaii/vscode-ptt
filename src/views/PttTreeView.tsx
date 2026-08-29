@@ -3,6 +3,7 @@ import * as vscode from 'vscode';
 import ReactTreeView, { TreeItem } from '@hackmd/react-vsc-treeview';
 import store, { type ArticleListItem } from '../store';
 import type { IPttClient, FavoriteBoardItem } from '../types';
+import logger from '../logger';
 
 export interface PttTreeViewProps {
   ptt: IPttClient;
@@ -143,14 +144,9 @@ export const BoardNode: FC<{
     >
       {articleCount === 0 && (
         <TreeItem
-          id={`load-articles-${boardName}`}
-          label="點擊載入最新文章"
-          iconPath={new vscode.ThemeIcon('cloud-download')}
-          command={{
-            command: 'ptt.refresh-article',
-            title: '載入最新文章',
-            arguments: [boardName]
-          }}
+          id={`loading-${boardName}`}
+          label="載入文章列表中..."
+          iconPath={new vscode.ThemeIcon('loading~spin')}
         />
       )}
 
@@ -352,6 +348,7 @@ export const PttTreeView: FC<PttTreeViewProps> = ({ ptt, context, isLoggedIn, ve
 export class PttTreeViewController {
   private treeView?: vscode.TreeView<unknown>;
   private version = 0;
+  private didHookExpand = false;
 
   constructor(
     private ptt: IPttClient,
@@ -375,6 +372,30 @@ export class PttTreeViewController {
       />,
       'pttTree'
     );
+
+    const tv = this.treeView as vscode.TreeView<unknown> | undefined;
+    if (tv && !this.didHookExpand && typeof tv.onDidExpandElement === 'function') {
+      this.didHookExpand = true;
+      tv.onDidExpandElement(async (e: { element: unknown }) => {
+        const boardName = getBoardNameFromItem(e.element);
+        if (boardName && store.isEmpty(boardName)) {
+          logger.log(`[AutoLoad] Board disclosure expanded: ${boardName}`);
+          if (typeof vscode.window?.withProgress === 'function') {
+            await vscode.window.withProgress({ location: { viewId: 'pttTree' } }, async () => {
+              const articles = await this.ptt.getArticles(boardName);
+              logger.log(`[AutoLoad] Loaded ${articles?.length || 0} articles for ${boardName}`);
+              store.add(boardName, articles);
+              this.refresh();
+            });
+          } else {
+            const articles = await this.ptt.getArticles(boardName);
+            store.add(boardName, articles);
+            this.refresh();
+          }
+        }
+      });
+    }
+
     return this.treeView;
   }
 
