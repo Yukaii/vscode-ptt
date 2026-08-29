@@ -175,7 +175,7 @@ export const BoardNode: FC<{
       {articleCount === 0 && (
         <TreeItem
           id={`loading-${boardName}`}
-          label="載入文章列表中 (點擊載入)"
+          label="載入文章中..."
           iconPath={new vscode.ThemeIcon('loading~spin')}
           command={{
             command: 'ptt.refresh-board',
