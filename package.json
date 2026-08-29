@@ -89,7 +89,12 @@
       },
       {
         "command": "ptt.refresh-article",
-        "title": "重新整理文章列表",
+        "title": "重新整理看板列表",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "ptt.refresh-board",
+        "title": "重新整理此看板文章",
         "icon": "$(refresh)"
       },
       {
@@ -111,29 +116,36 @@
           "group": "navigation@1"
         },
         {
-          "command": "ptt.favorite-board",
+          "command": "ptt.refresh-article",
           "when": "view == pttTree && ptt:loggedIn",
           "group": "navigation@2"
         },
         {
-          "command": "ptt.refresh-article",
-          "when": "view == pttTree && ptt:loggedIn",
-          "group": "navigation@3"
-        },
-        {
           "command": "ptt.logout",
           "when": "view == pttTree && ptt:loggedIn",
-          "group": "navigation@4"
+          "group": "navigation@3"
         }
       ],
       "view/item/context": [
         {
-          "command": "ptt.remove-board",
-          "when": "view == pttTree && viewItem == board"
+          "command": "ptt.refresh-board",
+          "when": "view == pttTree && viewItem == board",
+          "group": "inline@1"
+        },
+        {
+          "command": "ptt.refresh-board",
+          "when": "view == pttTree && viewItem == board",
+          "group": "1_modification@1"
         },
         {
           "command": "ptt.search-board-by-push",
-          "when": "view == pttTree && viewItem == board"
+          "when": "view == pttTree && viewItem == board",
+          "group": "1_modification@2"
+        },
+        {
+          "command": "ptt.remove-board",
+          "when": "view == pttTree && viewItem == board",
+          "group": "1_modification@3"
         }
       ]
     },
@@ -174,15 +186,16 @@
       }
     ]
   },
+  "packageManager": "pnpm@12.0.0",
   "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
-    "cleanAndCompile": "tsc --build --clean && tsc -p ./",
+    "vscode:prepublish": "pnpm compile",
+    "compile": "pnpm --filter ptt-client build && tsc -p ./",
+    "cleanAndCompile": "tsc --build --clean && pnpm --filter ptt-client build && tsc -p ./",
     "watch": "tsc -watch -p ./",
     "lint": "eslint src",
     "test:unit": "mocha --require ./out/test/unit/setup.js ./out/test/unit/**/*.test.js",
     "test:integration": "vscode-test",
-    "test": "npm run compile && npm run test:unit"
+    "test": "pnpm compile && pnpm test:unit && pnpm --filter ptt-client test"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
@@ -205,7 +218,7 @@
   },
   "dependencies": {
     "@hackmd/react-vsc-treeview": "^0.2.5",
-    "ptt-client": "^0.8.1",
+    "ptt-client": "workspace:*",
     "react": "^18.3.1"
   }
 }

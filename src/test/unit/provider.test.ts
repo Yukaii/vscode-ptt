@@ -102,4 +102,16 @@ describe('PttFileSystemProvider Unit Tests', () => {
     assert.throws(() => provider.delete());
     assert.throws(() => provider.rename());
   });
+
+  it('throws Unavailable if user is not logged in', async () => {
+    const mockPtt = new MockPttClient(false);
+    const provider = new PttFileSystemProvider(mockPtt, async () => false);
+
+    await assert.rejects(
+      async () => {
+        await provider.readFile(vscode.Uri.parse('ptt:/Gossiping/12345.ptt'));
+      },
+      (err: unknown) => (err as vscode.FileSystemError)?.code === 'Unavailable'
+    );
+  });
 });

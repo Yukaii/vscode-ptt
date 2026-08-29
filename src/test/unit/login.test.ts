@@ -297,5 +297,25 @@ describe('Login Unit Tests', () => {
       assert.strictEqual(contextKey, 'ptt:loggedIn');
       assert.strictEqual(contextValue, true);
     });
+
+    it('deduplicates concurrent login calls and awaits single in-flight attempt', async () => {
+      let loginCalls = 0;
+      globalStore['username'] = 'concurrentUser';
+      globalStore['password'] = 'concurrentPass';
+
+      mockPtt.login = async () => {
+        loginCalls++;
+        await new Promise(r => setTimeout(r, 20));
+        mockPtt.state.login = true;
+        return true;
+      };
+
+      const [res1, res2] = await Promise.all([login(true), login(true)]);
+
+      assert.strictEqual(res1, true);
+      assert.strictEqual(res2, true);
+      assert.strictEqual(loginCalls, 1);
+      assert.strictEqual(checkLogin(), true);
+    });
   });
 });

@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback, type FC } from 'react';
 import * as vscode from 'vscode';
 import ReactTreeView, { TreeItem } from '@hackmd/react-vsc-treeview';
 import store, { type ArticleListItem } from '../store';
-import type { IPttClient } from '../types';
+import type { IPttClient, FavoriteBoardItem } from '../types';
+import logger from '../logger';
 
 export interface PttTreeViewProps {
   ptt: IPttClient;
@@ -15,30 +16,88 @@ export function getBoardNameFromItem(boardItem: unknown): string | undefined {
   if (!boardItem) {
     return undefined;
   }
+
+  const ignoreLabels = new Set([
+    '我的最愛',
+    '其他看板',
+    '尚未登入 PTT',
+    '尚未訂閱任何看板',
+    '載入更多文章',
+    '已載入所有歷史文章',
+    '我的最愛目前沒有看板',
+    '看板尚無文章',
+    '載入文章列表中...',
+    '載入我的最愛中...'
+  ]);
+
   if (typeof boardItem === 'string') {
+    if (boardItem.startsWith('loadmore-')) {
+      return boardItem.replace('loadmore-', '');
+    }
+    if (boardItem.startsWith('board-')) {
+      return boardItem.replace('board-', '');
+    }
+    if (
+      boardItem === 'favorite-root' ||
+      boardItem === 'custom-boards-root' ||
+      boardItem === 'not-logged-in' ||
+      boardItem === 'no-boards' ||
+      ignoreLabels.has(boardItem)
+    ) {
+      return undefined;
+    }
     return boardItem;
   }
   const item = boardItem as Record<string, unknown>;
-  if (typeof item.boardname === 'string') {
+  if (typeof item.boardname === 'string' && item.boardname.trim().length > 0) {
     return item.boardname;
   }
+
   if (item.value && typeof item.value === 'object') {
     const val = item.value as Record<string, unknown>;
-    if (typeof val.label === 'string') {
+    if (typeof val.id === 'string') {
+      if (val.id.startsWith('loadmore-')) {
+        return val.id.replace('loadmore-', '');
+      }
+      if (val.id.startsWith('board-')) {
+        return val.id.replace('board-', '');
+      }
+      if (val.id === 'favorite-root' || val.id === 'custom-boards-root' || val.id === 'not-logged-in') {
+        return undefined;
+      }
+    }
+    if (typeof val.boardname === 'string') {
+      return val.boardname;
+    }
+    if (typeof val.label === 'string' && !ignoreLabels.has(val.label) && !val.label.startsWith('載入')) {
       return val.label;
     }
     if (val.label && typeof val.label === 'object' && 'label' in val.label) {
-      return (val.label as { label: string }).label;
-    }
-    if (typeof val.id === 'string' && val.id.startsWith('board-')) {
-      return val.id.replace('board-', '');
+      const lbl = (val.label as { label: string }).label;
+      if (!ignoreLabels.has(lbl) && !lbl.startsWith('載入')) {
+        return lbl;
+      }
     }
   }
-  if (typeof item.label === 'string') {
+  if (typeof item.id === 'string') {
+    if (item.id.startsWith('loadmore-')) {
+      return item.id.replace('loadmore-', '');
+    }
+    if (item.id.startsWith('board-')) {
+      return item.id.replace('board-', '');
+    }
+    if (item.id === 'favorite-root' || item.id === 'custom-boards-root' || item.id === 'not-logged-in') {
+      return undefined;
+    }
+  }
+  if (typeof item.label === 'string' && !ignoreLabels.has(item.label) && !item.label.startsWith('載入')) {
     return item.label;
   }
   if (item.label && typeof item.label === 'object' && 'label' in item.label) {
-    return (item.label as { label: string }).label;
+    const lbl = (item.label as { label: string }).label;
+    if (!ignoreLabels.has(lbl) && !lbl.startsWith('載入')) {
+      return lbl;
+    }
   }
   return undefined;
 }
@@ -92,42 +151,15 @@ export const ArticleNode: FC<{
 
 export const BoardNode: FC<{
   boardName: string;
-  ptt: IPttClient;
-  isLoggedIn: boolean;
+  boardTitle?: string;
+  ptt?: IPttClient;
+  isLoggedIn?: boolean;
   version?: number;
-}> = ({ boardName, ptt, isLoggedIn, version }) => {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchArticles = useCallback(async (force = false) => {
-    if (!isLoggedIn || !ptt?.state?.login) {
-      return;
-    }
-    if (!force && !store.isEmpty(boardName)) {
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await ptt.getArticles(boardName);
-      store.add(boardName, data);
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : '載入文章失敗';
-      setError(message);
-    } finally {
-      setLoading(false);
-    }
-  }, [boardName, ptt, isLoggedIn]);
-
-  useEffect(() => {
-    if (store.isEmpty(boardName)) {
-      fetchArticles(false);
-    }
-  }, [boardName, version, fetchArticles]);
-
+}> = ({ boardName, boardTitle }) => {
   const articles = store.asList(boardName);
   const articleCount = articles.length;
-  const description = articleCount > 0 ? `${articleCount} 篇` : undefined;
+  const description = articleCount > 0 ? `${articleCount} 篇` : boardTitle;
+  const tooltip = boardTitle ? `${boardName} (${boardTitle})` : boardName;
   const oldestSn = store.lastSn(boardName);
   const hasReachedBeginning = oldestSn <= 1 && articleCount > 0;
 
@@ -136,49 +168,32 @@ export const BoardNode: FC<{
       id={`board-${boardName}`}
       label={boardName}
       description={description}
+      tooltip={tooltip}
       iconPath={new vscode.ThemeIcon('bookmark')}
       contextValue="board"
     >
-      {loading && (
+      {articleCount === 0 && (
         <TreeItem
           id={`loading-${boardName}`}
-          label="載入文章列表中..."
+          label="載入文章中..."
           iconPath={new vscode.ThemeIcon('loading~spin')}
-        />
-      )}
-
-      {error && (
-        <TreeItem
-          id={`error-${boardName}`}
-          label={`載入失敗: ${error}`}
-          description="點擊重試"
-          iconPath={new vscode.ThemeIcon('error')}
           command={{
-            command: 'ptt.refresh-article',
-            title: '重新整理',
+            command: 'ptt.refresh-board',
+            title: '載入文章',
             arguments: [boardName]
           }}
         />
       )}
 
-      {!loading && !error && articleCount === 0 && (
-        <TreeItem
-          id={`empty-${boardName}`}
-          label="看板尚無文章"
-          iconPath={new vscode.ThemeIcon('info')}
+      {articles.map(article => (
+        <ArticleNode
+          key={`${boardName}-${article.sn}`}
+          article={article}
+          boardName={boardName}
         />
-      )}
+      ))}
 
-      {!loading &&
-        articles.map(article => (
-          <ArticleNode
-            key={`${boardName}-${article.sn}`}
-            article={article}
-            boardName={boardName}
-          />
-        ))}
-
-      {!loading && articleCount > 0 && !hasReachedBeginning && (
+      {articleCount > 0 && !hasReachedBeginning && (
         <TreeItem
           id={`loadmore-${boardName}`}
           label="載入更多文章"
@@ -192,13 +207,126 @@ export const BoardNode: FC<{
         />
       )}
 
-      {!loading && hasReachedBeginning && (
+      {hasReachedBeginning && (
         <TreeItem
           id={`end-${boardName}`}
           label="已載入所有歷史文章"
           iconPath={new vscode.ThemeIcon('check')}
         />
       )}
+    </TreeItem>
+  );
+};
+
+export const FavoriteNode: FC<{
+  ptt: IPttClient;
+  context: vscode.ExtensionContext;
+  isLoggedIn: boolean;
+  version?: number;
+}> = ({ ptt, context, isLoggedIn, version }) => {
+  const [favorites, setFavorites] = useState<FavoriteBoardItem[]>(() => {
+    const inStore = store.getFavorites();
+    if (inStore && inStore.length > 0) {
+      return inStore;
+    }
+    const persisted = context?.globalState?.get<FavoriteBoardItem[]>('cachedFavorites');
+    if (persisted && persisted.length > 0) {
+      store.setFavorites(persisted);
+      return persisted;
+    }
+    return [];
+  });
+  const [loading, setLoading] = useState(() => isLoggedIn && !store.hasFavorites());
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchFavorites = useCallback(async (force = false) => {
+    if (!isLoggedIn || !ptt?.state?.login) {
+      return;
+    }
+    if (!force && store.hasFavorites()) {
+      const cached = store.getFavorites();
+      logger.log(`[Favorites] Using cached favorites (${cached.length} items)`);
+      setFavorites(cached);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    logger.log('[Favorites] Fetching live favorites from PTT...');
+    try {
+      const data = await ptt.getFavorite();
+      const validFavorites = (data || []).filter(
+        item => !item.divider && Boolean(item.boardname?.trim()) && /^[A-Za-z0-9_.-]+$/.test(item.boardname.trim())
+      );
+      logger.log(`[Favorites] Successfully loaded and cached ${validFavorites.length} favorite boards.`);
+      store.setFavorites(validFavorites);
+      context?.globalState?.update('cachedFavorites', validFavorites);
+      setFavorites(validFavorites);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : '載入我的最愛失敗';
+      logger.error('[Favorites] Failed to load favorites:', message);
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  }, [ptt, isLoggedIn, context]);
+
+  useEffect(() => {
+    if (isLoggedIn && ptt?.state?.login) {
+      fetchFavorites(false);
+    } else {
+      setFavorites([]);
+      setLoading(false);
+    }
+  }, [version, isLoggedIn, fetchFavorites]);
+
+  return (
+    <TreeItem
+      id="favorite-root"
+      label="我的最愛"
+      iconPath={new vscode.ThemeIcon('star')}
+      contextValue="favoriteRoot"
+    >
+      {loading && (
+        <TreeItem
+          id="favorite-loading"
+          label="載入我的最愛中..."
+          iconPath={new vscode.ThemeIcon('loading~spin')}
+        />
+      )}
+
+      {error && (
+        <TreeItem
+          id="favorite-error"
+          label={`載入失敗: ${error}`}
+          description="點擊重試"
+          iconPath={new vscode.ThemeIcon('error')}
+          command={{
+            command: 'ptt.refresh-article',
+            title: '重新整理'
+          }}
+        />
+      )}
+
+      {!loading && !error && favorites.length === 0 && (
+        <TreeItem
+          id="favorite-empty"
+          label="我的最愛目前沒有看板"
+          iconPath={new vscode.ThemeIcon('info')}
+        />
+      )}
+
+      {!loading &&
+        favorites.map(fav => (
+          <BoardNode
+            key={fav.boardname}
+            boardName={fav.boardname}
+            boardTitle={fav.title?.trim()}
+            ptt={ptt}
+            isLoggedIn={isLoggedIn}
+            version={version}
+          />
+        ))}
     </TreeItem>
   );
 };
@@ -223,39 +351,34 @@ export const PttTreeView: FC<PttTreeViewProps> = ({ ptt, context, isLoggedIn, ve
     );
   }
 
-  if (boardList.length === 0) {
-    return (
-      <>
-        <TreeItem
-          id="no-boards"
-          label="尚未訂閱任何看板"
-          description="點擊新增看板"
-          iconPath={new vscode.ThemeIcon('add')}
-          command="ptt.add-board"
-        />
-        <TreeItem
-          id="pick-favorite"
-          label="從我的最愛匯入看板"
-          iconPath={new vscode.ThemeIcon('star')}
-          command="ptt.favorite-board"
-        />
-      </>
-    );
-  }
-
-  const sortedBoards = [...boardList].sort();
+  const customBoards = boardList.filter(Boolean);
 
   return (
     <>
-      {sortedBoards.map(boardName => (
-        <BoardNode
-          key={boardName}
-          boardName={boardName}
-          ptt={ptt}
-          isLoggedIn={isLoggedIn}
-          version={version}
-        />
-      ))}
+      <FavoriteNode
+        ptt={ptt}
+        context={context}
+        isLoggedIn={isLoggedIn}
+        version={version}
+      />
+      {customBoards.length > 0 && (
+        <TreeItem
+          id="custom-boards-root"
+          label="其他看板"
+          iconPath={new vscode.ThemeIcon('bookmark')}
+          contextValue="customBoardsRoot"
+        >
+          {customBoards.sort().map(boardName => (
+            <BoardNode
+              key={`custom-${boardName}`}
+              boardName={boardName}
+              ptt={ptt}
+              isLoggedIn={isLoggedIn}
+              version={version}
+            />
+          ))}
+        </TreeItem>
+      )}
     </>
   );
 };
@@ -263,6 +386,7 @@ export const PttTreeView: FC<PttTreeViewProps> = ({ ptt, context, isLoggedIn, ve
 export class PttTreeViewController {
   private treeView?: vscode.TreeView<unknown>;
   private version = 0;
+  private didHookExpand = false;
 
   constructor(
     private ptt: IPttClient,
@@ -286,6 +410,33 @@ export class PttTreeViewController {
       />,
       'pttTree'
     );
+
+    const tv = this.treeView as vscode.TreeView<unknown> | undefined;
+    if (tv && typeof tv.onDidExpandElement === 'function') {
+      tv.onDidExpandElement(async (e: { element: unknown }) => {
+        const boardName = getBoardNameFromItem(e.element);
+        logger.log('[TreeView.onDidExpandElement] Node expanded:', {
+          resolvedBoardName: boardName,
+          rawElement: e.element
+        });
+        if (boardName && store.isEmpty(boardName)) {
+          logger.log(`[AutoLoad] Board disclosure expanded: ${boardName}`);
+          if (typeof vscode.window?.withProgress === 'function') {
+            await vscode.window.withProgress({ location: { viewId: 'pttTree' } }, async () => {
+              const articles = await this.ptt.getArticles(boardName);
+              logger.log(`[AutoLoad] Loaded ${articles?.length || 0} articles for ${boardName}`);
+              store.add(boardName, articles);
+              this.refresh();
+            });
+          } else {
+            const articles = await this.ptt.getArticles(boardName);
+            store.add(boardName, articles);
+            this.refresh();
+          }
+        }
+      });
+    }
+
     return this.treeView;
   }
 

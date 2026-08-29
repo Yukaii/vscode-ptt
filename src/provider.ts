@@ -148,8 +148,8 @@ export default class PttFileSystemProvider implements vscode.FileSystemProvider 
       await this.ensureLogin();
     }
 
-    if (!this.ptt) {
-      throw vscode.FileSystemError.Unavailable('PTT client not initialized');
+    if (!this.ptt || !this.ptt.state?.login) {
+      throw vscode.FileSystemError.Unavailable('PTT client not logged in');
     }
 
     try {
