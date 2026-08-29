@@ -1,5 +1,9 @@
 # vscode-ptt
 
+<p align="center">
+  <img src="media/logo.svg" alt="vscode-ptt logo" width="128" height="128" />
+</p>
+
 ![](https://badgen.net/vs-marketplace/v/Yukai.vscode-ptt)
 ![](https://badgen.net/vs-marketplace/i/Yukai.vscode-ptt)
 ![](https://badgen.net/vs-marketplace/d/Yukai.vscode-ptt)
