@@ -5,13 +5,16 @@
 ![](https://badgen.net/vs-marketplace/d/Yukai.vscode-ptt)
 ![](https://badgen.net/vs-marketplace/rating/Yukai.vscode-ptt)
 
-![home](docs/images/screenshot.png)
+<img width="1295" height="917" alt="screenshot" src="https://github.com/user-attachments/assets/960dd2da-bfd7-4829-8c8c-24d3d57fd55f" />
+
 
 在 VSCode 也要上 PTT！
 
 你以為我在寫扣嗎？甘いよ、お前！我其實在上批踢踢啊！！
 
 ## Features
+
+https://github.com/user-attachments/assets/0b54309a-5071-4717-9bff-741f89f8fb84
 
 ### 新增訂閱看板
 
