@@ -403,14 +403,20 @@ export async function activate(context: vscode.ExtensionContext) {
       placeHolder: 'C_Chat'
     });
 
-    if (boardName){
-      const checkBoard = await ptt.enterBoard(boardName);
-      if (!checkBoard) {
-        vscode.window.showInformationMessage("此看板不存在");
-        return;
-      }
+    if (!boardName) {
+      return;
     }
-    else{
+
+    const checkBoard = await vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Notification,
+        title: `正在檢查看板 ${boardName}...`
+      },
+      async () => ptt.enterBoard(boardName)
+    );
+
+    if (!checkBoard) {
+      vscode.window.showInformationMessage("此看板不存在");
       return;
     }
 
@@ -426,8 +432,16 @@ export async function activate(context: vscode.ExtensionContext) {
       scheme: ContentProvider.scheme,
       path: `/${boardname}/${sn}.ptt`
     });
-    const doc = await vscode.workspace.openTextDocument(uri);
-    await vscode.window.showTextDocument(doc, vscode.ViewColumn.Active);
+    await vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Notification,
+        title: `正在開啟文章 (${boardname} #${sn})...`
+      },
+      async () => {
+        const doc = await vscode.workspace.openTextDocument(uri);
+        await vscode.window.showTextDocument(doc, vscode.ViewColumn.Active);
+      }
+    );
   }));
 
   context.subscriptions.push(vscode.commands.registerCommand('ptt.remove-board', (board: Board | unknown) => {
@@ -524,23 +538,26 @@ export async function activate(context: vscode.ExtensionContext) {
       placeHolder: '0 ~ 100'
     });
 
-    if (Number(push) > 100)
-    {
+    if (Number(push) > 100) {
       push = '100';
     }
 
-    if (store.isEmpty(boardname) === false)
-    {
+    if (!store.isEmpty(boardname)) {
       store.release(boardname);
     }
 
-    vscode.window.showInformationMessage('開始搜尋');
-    setSearchCondition("push", push);
-    const pushArticles: ArticleListItem[] = await ptt.getArticles(boardname);
-    vscode.window.showInformationMessage('完成搜尋');
-
-    store.add(boardname, pushArticles);
-    refreshTreeView();
+    await vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Notification,
+        title: `正在以推文數 ${push} 搜尋看板 ${boardname}...`
+      },
+      async () => {
+        setSearchCondition("push", push);
+        const pushArticles: ArticleListItem[] = await ptt.getArticles(boardname);
+        store.add(boardname, pushArticles);
+        refreshTreeView();
+      }
+    );
   }));
 
   context.subscriptions.push(
