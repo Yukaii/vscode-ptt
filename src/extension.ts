@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import WebSocket from 'ws';
-import PTT from 'ptt-client';
-import key from 'ptt-client/dist/utils/keymap';
+import PTT, { keymap as key } from 'ptt-client';
 
 (global as any).WebSocket = WebSocket;
 
