@@ -286,7 +286,6 @@ export const FavoriteNode: FC<{
       label="我的最愛"
       iconPath={new vscode.ThemeIcon('star')}
       contextValue="favoriteRoot"
-      expanded={true}
     >
       {loading && (
         <TreeItem
@@ -368,7 +367,6 @@ export const PttTreeView: FC<PttTreeViewProps> = ({ ptt, context, isLoggedIn, ve
           label="其他看板"
           iconPath={new vscode.ThemeIcon('bookmark')}
           contextValue="customBoardsRoot"
-          expanded={true}
         >
           {customBoards.sort().map(boardName => (
             <BoardNode
