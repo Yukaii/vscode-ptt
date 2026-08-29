@@ -175,8 +175,13 @@ export const BoardNode: FC<{
       {articleCount === 0 && (
         <TreeItem
           id={`loading-${boardName}`}
-          label="載入文章列表中..."
+          label="載入文章列表中 (點擊載入)"
           iconPath={new vscode.ThemeIcon('loading~spin')}
+          command={{
+            command: 'ptt.refresh-board',
+            title: '載入文章',
+            arguments: [boardName]
+          }}
         />
       )}
 
@@ -409,11 +414,10 @@ export class PttTreeViewController {
     );
 
     const tv = this.treeView as vscode.TreeView<unknown> | undefined;
-    if (tv && !this.didHookExpand && typeof tv.onDidExpandElement === 'function') {
-      this.didHookExpand = true;
+    if (tv && typeof tv.onDidExpandElement === 'function') {
       tv.onDidExpandElement(async (e: { element: unknown }) => {
         const boardName = getBoardNameFromItem(e.element);
-        logger.log('[TreeView.onDidExpandElement] Expanded node:', {
+        logger.log('[TreeView.onDidExpandElement] Node expanded:', {
           resolvedBoardName: boardName,
           rawElement: e.element
         });
