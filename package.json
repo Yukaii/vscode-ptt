@@ -123,12 +123,24 @@
       ],
       "view/item/context": [
         {
-          "command": "ptt.remove-board",
-          "when": "view == pttTree && viewItem == board"
+          "command": "ptt.refresh-article",
+          "when": "view == pttTree && viewItem == board",
+          "group": "inline@1"
+        },
+        {
+          "command": "ptt.refresh-article",
+          "when": "view == pttTree && viewItem == board",
+          "group": "1_modification@1"
         },
         {
           "command": "ptt.search-board-by-push",
-          "when": "view == pttTree && viewItem == board"
+          "when": "view == pttTree && viewItem == board",
+          "group": "1_modification@2"
+        },
+        {
+          "command": "ptt.remove-board",
+          "when": "view == pttTree && viewItem == board",
+          "group": "1_modification@3"
         }
       ]
     },
