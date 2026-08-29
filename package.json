@@ -188,14 +188,16 @@
   },
   "packageManager": "pnpm@12.0.0",
   "scripts": {
-    "vscode:prepublish": "pnpm compile",
+    "vscode:prepublish": "pnpm build",
+    "build": "pnpm --filter ptt-client build && esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node --minify --sourcemap",
     "compile": "pnpm --filter ptt-client build && tsc -p ./",
     "cleanAndCompile": "tsc --build --clean && pnpm --filter ptt-client build && tsc -p ./",
     "watch": "tsc -watch -p ./",
     "lint": "eslint src",
     "test:unit": "mocha --require ./out/test/unit/setup.js ./out/test/unit/**/*.test.js",
     "test:integration": "vscode-test",
-    "test": "pnpm compile && pnpm test:unit && pnpm --filter ptt-client test"
+    "test": "pnpm compile && pnpm test:unit && pnpm --filter ptt-client test",
+    "package": "vsce package --no-dependencies"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
@@ -208,10 +210,13 @@
     "@typescript-eslint/parser": "^8.68.0",
     "@vscode/test-cli": "^0.0.15",
     "@vscode/test-electron": "^3.1.0",
+    "@vscode/vsce": "^3.9.2",
     "dotenv": "^16.4.5",
+    "esbuild": "^0.28.2",
     "eslint": "^9.39.5",
     "glob": "^10.3.10",
     "mocha": "^10.3.0",
+    "ovsx": "^1.1.1",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.68.0",
     "ws": "^8.16.0"
