@@ -92,7 +92,8 @@ describe('PttTreeView Component and Controller Tests', () => {
 
       const mockContext = {
         globalState: {
-          get: (key: string) => (key === 'boardlist' ? ['Stock'] : undefined)
+          get: (key: string) => (key === 'boardlist' ? ['Stock'] : undefined),
+          update: () => Promise.resolve()
         }
       } as unknown as vscode.ExtensionContext;
 
@@ -118,7 +119,8 @@ describe('PttTreeView Component and Controller Tests', () => {
 
       const mockContext = {
         globalState: {
-          get: () => undefined
+          get: () => undefined,
+          update: () => Promise.resolve()
         }
       } as unknown as vscode.ExtensionContext;
 
@@ -136,7 +138,8 @@ describe('PttTreeView Component and Controller Tests', () => {
 
       const mockContext = {
         globalState: {
-          get: () => undefined
+          get: () => undefined,
+          update: () => Promise.resolve()
         }
       } as unknown as vscode.ExtensionContext;
 

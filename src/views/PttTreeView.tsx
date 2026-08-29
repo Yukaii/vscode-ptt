@@ -16,6 +16,20 @@ export function getBoardNameFromItem(boardItem: unknown): string | undefined {
   if (!boardItem) {
     return undefined;
   }
+
+  const ignoreLabels = new Set([
+    '我的最愛',
+    '其他看板',
+    '尚未登入 PTT',
+    '尚未訂閱任何看板',
+    '載入更多文章',
+    '已載入所有歷史文章',
+    '我的最愛目前沒有看板',
+    '看板尚無文章',
+    '載入文章列表中...',
+    '載入我的最愛中...'
+  ]);
+
   if (typeof boardItem === 'string') {
     if (boardItem.startsWith('loadmore-')) {
       return boardItem.replace('loadmore-', '');
@@ -23,12 +37,22 @@ export function getBoardNameFromItem(boardItem: unknown): string | undefined {
     if (boardItem.startsWith('board-')) {
       return boardItem.replace('board-', '');
     }
+    if (
+      boardItem === 'favorite-root' ||
+      boardItem === 'custom-boards-root' ||
+      boardItem === 'not-logged-in' ||
+      boardItem === 'no-boards' ||
+      ignoreLabels.has(boardItem)
+    ) {
+      return undefined;
+    }
     return boardItem;
   }
   const item = boardItem as Record<string, unknown>;
-  if (typeof item.boardname === 'string') {
+  if (typeof item.boardname === 'string' && item.boardname.trim().length > 0) {
     return item.boardname;
   }
+
   if (item.value && typeof item.value === 'object') {
     const val = item.value as Record<string, unknown>;
     if (typeof val.id === 'string') {
@@ -38,16 +62,19 @@ export function getBoardNameFromItem(boardItem: unknown): string | undefined {
       if (val.id.startsWith('board-')) {
         return val.id.replace('board-', '');
       }
+      if (val.id === 'favorite-root' || val.id === 'custom-boards-root' || val.id === 'not-logged-in') {
+        return undefined;
+      }
     }
     if (typeof val.boardname === 'string') {
       return val.boardname;
     }
-    if (typeof val.label === 'string' && val.label !== '載入更多文章' && !val.label.startsWith('載入')) {
+    if (typeof val.label === 'string' && !ignoreLabels.has(val.label) && !val.label.startsWith('載入')) {
       return val.label;
     }
     if (val.label && typeof val.label === 'object' && 'label' in val.label) {
       const lbl = (val.label as { label: string }).label;
-      if (lbl !== '載入更多文章' && !lbl.startsWith('載入')) {
+      if (!ignoreLabels.has(lbl) && !lbl.startsWith('載入')) {
         return lbl;
       }
     }
@@ -59,13 +86,16 @@ export function getBoardNameFromItem(boardItem: unknown): string | undefined {
     if (item.id.startsWith('board-')) {
       return item.id.replace('board-', '');
     }
+    if (item.id === 'favorite-root' || item.id === 'custom-boards-root' || item.id === 'not-logged-in') {
+      return undefined;
+    }
   }
-  if (typeof item.label === 'string' && item.label !== '載入更多文章' && !item.label.startsWith('載入')) {
+  if (typeof item.label === 'string' && !ignoreLabels.has(item.label) && !item.label.startsWith('載入')) {
     return item.label;
   }
   if (item.label && typeof item.label === 'object' && 'label' in item.label) {
     const lbl = (item.label as { label: string }).label;
-    if (lbl !== '載入更多文章' && !lbl.startsWith('載入')) {
+    if (!ignoreLabels.has(lbl) && !lbl.startsWith('載入')) {
       return lbl;
     }
   }
@@ -209,22 +239,27 @@ export const FavoriteNode: FC<{
       return;
     }
     if (!force && store.hasFavorites()) {
-      setFavorites(store.getFavorites());
+      const cached = store.getFavorites();
+      logger.log(`[Favorites] Using cached favorites (${cached.length} items)`);
+      setFavorites(cached);
       setLoading(false);
       return;
     }
     setLoading(true);
     setError(null);
+    logger.log('[Favorites] Fetching live favorites from PTT...');
     try {
       const data = await ptt.getFavorite();
       const validFavorites = (data || []).filter(
         item => !item.divider && Boolean(item.boardname?.trim()) && /^[A-Za-z0-9_.-]+$/.test(item.boardname.trim())
       );
+      logger.log(`[Favorites] Successfully loaded and cached ${validFavorites.length} favorite boards.`);
       store.setFavorites(validFavorites);
       context?.globalState?.update('cachedFavorites', validFavorites);
       setFavorites(validFavorites);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : '載入我的最愛失敗';
+      logger.error('[Favorites] Failed to load favorites:', message);
       setError(message);
     } finally {
       setLoading(false);
@@ -378,6 +413,10 @@ export class PttTreeViewController {
       this.didHookExpand = true;
       tv.onDidExpandElement(async (e: { element: unknown }) => {
         const boardName = getBoardNameFromItem(e.element);
+        logger.log('[TreeView.onDidExpandElement] Expanded node:', {
+          resolvedBoardName: boardName,
+          rawElement: e.element
+        });
         if (boardName && store.isEmpty(boardName)) {
           logger.log(`[AutoLoad] Board disclosure expanded: ${boardName}`);
           if (typeof vscode.window?.withProgress === 'function') {
