@@ -445,12 +445,13 @@ export async function activate(context: vscode.ExtensionContext) {
     if (!checkLogin()) {
       return;
     }
-    const specificBoard = getBoardNameFromItem(board);
+    const specificBoard = typeof board === 'string' ? board : getBoardNameFromItem(board);
     if (specificBoard) {
       logger.log(`[Refresh] Refreshing board: ${specificBoard}`);
       contentProvider?.clearCache(specificBoard);
       store.release(specificBoard);
       const articles = await ptt.getArticles(specificBoard);
+      logger.log(`[Refresh] Loaded ${articles?.length || 0} articles for ${specificBoard}`);
       store.add(specificBoard, articles);
       refreshTreeView();
       return;

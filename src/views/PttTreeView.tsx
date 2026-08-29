@@ -121,39 +121,10 @@ export const ArticleNode: FC<{
 export const BoardNode: FC<{
   boardName: string;
   boardTitle?: string;
-  ptt: IPttClient;
-  isLoggedIn: boolean;
+  ptt?: IPttClient;
+  isLoggedIn?: boolean;
   version?: number;
-}> = ({ boardName, boardTitle, ptt, isLoggedIn, version }) => {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchArticles = useCallback(async (force = false) => {
-    if (!isLoggedIn || !ptt?.state?.login) {
-      return;
-    }
-    if (!force && !store.isEmpty(boardName)) {
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await ptt.getArticles(boardName);
-      store.add(boardName, data);
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : '載入文章失敗';
-      setError(message);
-    } finally {
-      setLoading(false);
-    }
-  }, [boardName, ptt, isLoggedIn]);
-
-  useEffect(() => {
-    if (store.isEmpty(boardName)) {
-      fetchArticles(false);
-    }
-  }, [boardName, version, fetchArticles]);
-
+}> = ({ boardName, boardTitle }) => {
   const articles = store.asList(boardName);
   const articleCount = articles.length;
   const description = articleCount > 0 ? `${articleCount} 篇` : boardTitle;
@@ -170,46 +141,28 @@ export const BoardNode: FC<{
       iconPath={new vscode.ThemeIcon('bookmark')}
       contextValue="board"
     >
-      {loading && (
+      {articleCount === 0 && (
         <TreeItem
-          id={`loading-${boardName}`}
-          label="載入文章列表中..."
-          iconPath={new vscode.ThemeIcon('loading~spin')}
-        />
-      )}
-
-      {error && (
-        <TreeItem
-          id={`error-${boardName}`}
-          label={`載入失敗: ${error}`}
-          description="點擊重試"
-          iconPath={new vscode.ThemeIcon('error')}
+          id={`load-articles-${boardName}`}
+          label="點擊載入最新文章"
+          iconPath={new vscode.ThemeIcon('cloud-download')}
           command={{
             command: 'ptt.refresh-article',
-            title: '重新整理',
+            title: '載入最新文章',
             arguments: [boardName]
           }}
         />
       )}
 
-      {!loading && !error && articleCount === 0 && (
-        <TreeItem
-          id={`empty-${boardName}`}
-          label="看板尚無文章"
-          iconPath={new vscode.ThemeIcon('info')}
+      {articles.map(article => (
+        <ArticleNode
+          key={`${boardName}-${article.sn}`}
+          article={article}
+          boardName={boardName}
         />
-      )}
+      ))}
 
-      {!loading &&
-        articles.map(article => (
-          <ArticleNode
-            key={`${boardName}-${article.sn}`}
-            article={article}
-            boardName={boardName}
-          />
-        ))}
-
-      {!loading && articleCount > 0 && !hasReachedBeginning && (
+      {articleCount > 0 && !hasReachedBeginning && (
         <TreeItem
           id={`loadmore-${boardName}`}
           label="載入更多文章"
@@ -223,7 +176,7 @@ export const BoardNode: FC<{
         />
       )}
 
-      {!loading && hasReachedBeginning && (
+      {hasReachedBeginning && (
         <TreeItem
           id={`end-${boardName}`}
           label="已載入所有歷史文章"
