@@ -98,7 +98,8 @@ export const mockVscode = {
     showWarningMessage: async (..._args: unknown[]): Promise<unknown> => undefined,
     showInputBox: async (..._args: unknown[]): Promise<unknown> => undefined,
     showQuickPick: async (..._args: unknown[]): Promise<unknown> => undefined,
-    showTextDocument: async (..._args: unknown[]): Promise<unknown> => undefined
+    showTextDocument: async (..._args: unknown[]): Promise<unknown> => undefined,
+    withProgress: async (_options: unknown, task: (progress: unknown) => Promise<unknown>) => task({})
   },
   workspace: {
     getConfiguration: (..._args: unknown[]) => ({

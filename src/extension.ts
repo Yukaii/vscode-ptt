@@ -445,30 +445,32 @@ export async function activate(context: vscode.ExtensionContext) {
     if (!checkLogin()) {
       return;
     }
-    const specificBoard = typeof board === 'string' ? board : getBoardNameFromItem(board);
-    if (specificBoard) {
-      logger.log(`[Refresh] Refreshing board: ${specificBoard}`);
-      contentProvider?.clearCache(specificBoard);
-      store.release(specificBoard);
-      const articles = await ptt.getArticles(specificBoard);
-      logger.log(`[Refresh] Loaded ${articles?.length || 0} articles for ${specificBoard}`);
-      store.add(specificBoard, articles);
-      refreshTreeView();
-      return;
-    }
+    await vscode.window.withProgress({ location: { viewId: 'pttTree' } }, async () => {
+      const specificBoard = typeof board === 'string' ? board : getBoardNameFromItem(board);
+      if (specificBoard) {
+        logger.log(`[Refresh] Refreshing board: ${specificBoard}`);
+        contentProvider?.clearCache(specificBoard);
+        store.release(specificBoard);
+        const articles = await ptt.getArticles(specificBoard);
+        logger.log(`[Refresh] Loaded ${articles?.length || 0} articles for ${specificBoard}`);
+        store.add(specificBoard, articles);
+        refreshTreeView();
+        return;
+      }
 
-    logger.log('[Refresh] Refreshing all boards and favorites...');
-    contentProvider?.clearCache();
-    store.clearFavorites();
-    ctx.globalState.update('cachedFavorites', []);
-    ptt.resetSearchCondition();
-    const boards = store.getBoardNames();
-    for (const boardname of boards) {
-      store.release(boardname);
-      const articles = await ptt.getArticles(boardname);
-      store.add(boardname, articles);
-    }
-    refreshTreeView();
+      logger.log('[Refresh] Refreshing all loaded boards and favorites...');
+      contentProvider?.clearCache();
+      store.clearFavorites();
+      ctx.globalState.update('cachedFavorites', []);
+      ptt.resetSearchCondition();
+      const boards = store.getBoardNames();
+      for (const boardname of boards) {
+        store.release(boardname);
+        const articles = await ptt.getArticles(boardname);
+        store.add(boardname, articles);
+      }
+      refreshTreeView();
+    });
   }));
 
   context.subscriptions.push(vscode.commands.registerCommand('ptt.load-more-article', async (boardnameOrItem: string | unknown) => {
@@ -488,16 +490,19 @@ export async function activate(context: vscode.ExtensionContext) {
       vscode.window.showInformationMessage('已載入此看板所有歷史文章');
       return;
     }
-    const targetSn = lastSn > 0 ? Math.max(lastSn - 1, 1) : 0;
-    logger.log(`[LoadMore] Fetching older articles for ${boardname} (target cursor SN: ${targetSn})...`);
-    const articles = await ptt.getArticles(boardname, targetSn);
-    logger.log(`[LoadMore] Received ${articles?.length || 0} older articles for ${boardname}`);
 
-    if (articles?.length > 0) {
-      store.add(boardname, articles);
-      logger.log(`[LoadMore] Total articles now in store for ${boardname}: ${store.asList(boardname).length}`);
-    }
-    refreshTreeView();
+    await vscode.window.withProgress({ location: { viewId: 'pttTree' } }, async () => {
+      const targetSn = lastSn > 0 ? Math.max(lastSn - 1, 1) : 0;
+      logger.log(`[LoadMore] Fetching older articles for ${boardname} (target cursor SN: ${targetSn})...`);
+      const articles = await ptt.getArticles(boardname, targetSn);
+      logger.log(`[LoadMore] Received ${articles?.length || 0} older articles for ${boardname}`);
+
+      if (articles?.length > 0) {
+        store.add(boardname, articles);
+        logger.log(`[LoadMore] Total articles now in store for ${boardname}: ${store.asList(boardname).length}`);
+      }
+      refreshTreeView();
+    });
   }));
 
   context.subscriptions.push(vscode.commands.registerCommand('ptt.release-board', async (board: Board | unknown) => {
