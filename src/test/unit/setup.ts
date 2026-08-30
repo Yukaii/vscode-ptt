@@ -50,14 +50,44 @@ export const mockVscode = {
   ThemeIcon: class {
     constructor(public id: string, public color?: unknown) {}
   },
+  Position: class Position {
+    constructor(public line: number, public character: number) {}
+  },
+  Range: class Range {
+    start: { line: number; character: number };
+    end: { line: number; character: number };
+    constructor(
+      startLineOrPos: number | { line: number; character: number },
+      startCharOrEndPos: number | { line: number; character: number },
+      endLine?: number,
+      endCharacter?: number
+    ) {
+      if (typeof startLineOrPos === 'object') {
+        this.start = { line: startLineOrPos.line, character: startLineOrPos.character };
+        const end = startCharOrEndPos as { line: number; character: number };
+        this.end = { line: end.line, character: end.character };
+      } else {
+        this.start = { line: startLineOrPos, character: startCharOrEndPos as number };
+        this.end = { line: endLine ?? startLineOrPos, character: endCharacter ?? (startCharOrEndPos as number) };
+      }
+    }
+  },
+  Hover: class Hover {
+    constructor(public contents: unknown, public range?: unknown) {}
+  },
   MarkdownString: class {
-    private str = '';
+    value: string;
+    isTrusted?: boolean;
+    supportHtml?: boolean;
+    constructor(value = '', public supportThemeIcons = false) {
+      this.value = value;
+    }
     appendMarkdown(s: string) {
-      this.str += s;
+      this.value += s;
       return this;
     }
     toString() {
-      return this.str;
+      return this.value;
     }
   },
   TreeItemCollapsibleState: {
@@ -82,7 +112,8 @@ export const mockVscode = {
         doc.languageId = languageId;
       }
       return doc;
-    }
+    },
+    registerHoverProvider: (_selector: unknown, _provider: unknown) => ({ dispose: () => {} })
   },
   commands: {
     registerCommand: () => ({ dispose: () => {} }),
@@ -103,7 +134,7 @@ export const mockVscode = {
   },
   workspace: {
     getConfiguration: (..._args: unknown[]) => ({
-      get: (..._gargs: unknown[]) => undefined
+      get: (_key: string, defaultValue?: unknown) => defaultValue
     }),
     registerFileSystemProvider: () => ({ dispose: () => {} }),
     registerTextDocumentContentProvider: () => ({ dispose: () => {} }),

@@ -7,6 +7,7 @@ import PTT, { keymap as key } from 'ptt-client';
 import type { PttTreeDataProvider, Board } from './pttDataProvider';
 import { PttTreeViewController, getBoardNameFromItem } from './views/PttTreeView';
 import ContentProvider from './provider';
+import PttHoverProvider from './hoverProvider';
 import store, { type ArticleListItem } from './store';
 import type { IPttClient, FavoriteBoardItem } from './types';
 import logger from './logger';
@@ -366,6 +367,14 @@ export async function activate(context: vscode.ExtensionContext) {
       isReadonly: true,
       isCaseSensitive: true
     })
+  );
+
+  const hoverProvider = new PttHoverProvider();
+  context.subscriptions.push(
+    vscode.languages.registerHoverProvider(
+      [{ language: 'ptt' }, { scheme: ContentProvider.scheme }],
+      hoverProvider
+    )
   );
 
   updateLoginContext();

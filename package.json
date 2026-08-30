@@ -20,6 +20,7 @@
   "license": "WTFPL",
   "activationEvents": [
     "onFileSystem:ptt",
+    "onLanguage:ptt",
     "onCommand:ptt.login",
     "onCommand:ptt.logout",
     "onCommand:ptt.add-board",
@@ -182,6 +183,18 @@
             "type": "boolean",
             "scope": "window",
             "default": false
+          },
+          "previewImages": {
+            "description": "在懸浮提示中預覽 Imgur 及圖片連結 (Preview Imgur and image links in hover card)",
+            "type": "boolean",
+            "scope": "window",
+            "default": true
+          },
+          "previewImageWidth": {
+            "description": "懸浮提示中的圖片預覽寬度（像素，設為 0 則不限制）(Image preview width in hover card in pixels, set to 0 for unconstrained)",
+            "type": "number",
+            "scope": "window",
+            "default": 320
           }
         }
       }
