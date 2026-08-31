@@ -76,6 +76,47 @@ describe('PttFileSystemProvider Unit Tests', () => {
     assert.strictEqual(updatedContent, '更新後的文章內容');
   });
 
+  it('refreshArticle updates cache and fires onDidChangeFile when content changes', async () => {
+    const mockPtt = new MockPttClient(true);
+    mockPtt.articleDetails['Gossiping/12345'] = {
+      lines: ['Initial line 1', 'Initial line 2']
+    };
+
+    const provider = new PttFileSystemProvider(mockPtt, async () => true);
+    const uri = vscode.Uri.parse('ptt:/Gossiping/12345.ptt');
+    await provider.readFile(uri);
+
+    assert.strictEqual(provider.hasCache('Gossiping', '12345'), true);
+
+    let eventFired = false;
+    let firedEvents: vscode.FileChangeEvent[] = [];
+    provider.onDidChangeFile((events) => {
+      eventFired = true;
+      firedEvents = events;
+    });
+
+    // 1. Refresh with same content -> should return false and not fire event
+    const changed1 = await provider.refreshArticle('Gossiping', '12345', uri);
+    assert.strictEqual(changed1, false);
+    assert.strictEqual(eventFired, false);
+
+    // 2. Refresh with new push added -> should return true and fire change event
+    mockPtt.articleDetails['Gossiping/12345'] = {
+      lines: ['Initial line 1', 'Initial line 2', '推 testuser: 新推文!']
+    };
+    const changed2 = await provider.refreshArticle('Gossiping', '12345', uri);
+    assert.strictEqual(changed2, true);
+    assert.strictEqual(eventFired, true);
+    assert.strictEqual(firedEvents.length, 1);
+    assert.strictEqual(firedEvents[0].type, vscode.FileChangeType.Changed);
+    assert.strictEqual(firedEvents[0].uri.toString(), uri.toString());
+
+    // Verify cache now has new content
+    const cachedBytes = await provider.readFile(uri);
+    const cachedText = new TextDecoder().decode(cachedBytes);
+    assert.ok(cachedText.includes('推 testuser: 新推文!'));
+  });
+
   it('readDirectory returns cached boards and articles', async () => {
     const mockPtt = new MockPttClient(true);
     mockPtt.articleDetails['Gossiping/12345'] = { lines: ['line1'] };

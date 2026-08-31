@@ -10,6 +10,21 @@ export const mockVscode = {
   FilePermission: {
     Readonly: 1
   },
+  FileChangeType: {
+    Changed: 1,
+    Created: 2,
+    Deleted: 3
+  },
+  StatusBarAlignment: {
+    Left: 1,
+    Right: 2
+  },
+  TextEditorRevealType: {
+    Default: 0,
+    InCenter: 1,
+    InCenterIfOutsideViewport: 2,
+    AtTop: 3
+  },
   FileSystemError: class FileSystemError extends Error {
     public code: string;
     constructor(message: string, code = '') {
@@ -120,6 +135,17 @@ export const mockVscode = {
     executeCommand: async (..._args: unknown[]): Promise<unknown> => undefined
   },
   window: {
+    activeTextEditor: undefined as unknown,
+    visibleTextEditors: [] as unknown[],
+    createStatusBarItem: (_alignment?: number, _priority?: number) => ({
+      text: '',
+      tooltip: '',
+      command: '',
+      show: () => {},
+      hide: () => {},
+      dispose: () => {}
+    }),
+    onDidChangeActiveTextEditor: (_listener: (editor: unknown) => void) => ({ dispose: () => {} }),
     createTreeView: (_viewId: string, options?: { treeDataProvider?: unknown }) => ({
       treeDataProvider: options?.treeDataProvider,
       dispose: () => {}
@@ -139,7 +165,9 @@ export const mockVscode = {
     registerFileSystemProvider: () => ({ dispose: () => {} }),
     registerTextDocumentContentProvider: () => ({ dispose: () => {} }),
     openTextDocument: async (uri: unknown): Promise<unknown> => ({ uri, languageId: 'plaintext' }),
-    onDidOpenTextDocument: () => ({ dispose: () => {} })
+    onDidOpenTextDocument: () => ({ dispose: () => {} }),
+    onDidChangeTextDocument: (_listener: (e: unknown) => void) => ({ dispose: () => {} }),
+    onDidCloseTextDocument: (_listener: (doc: unknown) => void) => ({ dispose: () => {} })
   },
   Uri: {
     parse: (val: string) => {
