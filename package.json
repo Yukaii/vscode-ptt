@@ -28,6 +28,9 @@
     "onCommand:ptt.search-board-by-push",
     "onCommand:ptt.refresh-article",
     "onCommand:ptt.favorite-board",
+    "onCommand:ptt.toggle-live-tracking",
+    "onCommand:ptt.start-live-tracking",
+    "onCommand:ptt.stop-live-tracking",
     "onView:pttTree"
   ],
   "repository": {
@@ -103,6 +106,24 @@
         "command": "ptt.favorite-board",
         "title": "從我的最愛新增訂閱",
         "icon": "$(star)"
+      },
+      {
+        "command": "ptt.toggle-live-tracking",
+        "title": "切換即時追推文 (Toggle Live Tracking)",
+        "category": "PTT",
+        "icon": "$(radio-tower)"
+      },
+      {
+        "command": "ptt.start-live-tracking",
+        "title": "開啟即時追推文 (Start Live Tracking)",
+        "category": "PTT",
+        "icon": "$(radio-tower)"
+      },
+      {
+        "command": "ptt.stop-live-tracking",
+        "title": "停止即時追推文 (Stop Live Tracking)",
+        "category": "PTT",
+        "icon": "$(primitive-square)"
       }
     ],
     "menus": {
@@ -148,6 +169,25 @@
           "command": "ptt.remove-board",
           "when": "view == pttTree && viewItem == board",
           "group": "1_modification@3"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "ptt.start-live-tracking",
+          "when": "resourceScheme == ptt && !ptt:isLiveTracking",
+          "group": "navigation"
+        },
+        {
+          "command": "ptt.stop-live-tracking",
+          "when": "resourceScheme == ptt && ptt:isLiveTracking",
+          "group": "navigation"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "ptt.toggle-live-tracking",
+          "when": "resourceScheme == ptt",
+          "group": "ptt@1"
         }
       ]
     },
@@ -195,6 +235,20 @@
             "type": "number",
             "scope": "window",
             "default": 320
+          },
+          "liveTrackingInterval": {
+            "description": "即時追推文更新頻率（秒）(Live tracking refresh interval in seconds)",
+            "type": "number",
+            "scope": "window",
+            "default": 3,
+            "minimum": 1,
+            "maximum": 60
+          },
+          "liveTrackingAutoScroll": {
+            "description": "即時追推文時自動捲動至文章底部 (Auto scroll to bottom during live tracking)",
+            "type": "boolean",
+            "scope": "window",
+            "default": true
           }
         }
       }

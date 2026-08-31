@@ -22,6 +22,10 @@ export default class PttFileSystemProvider implements vscode.FileSystemProvider 
     this.ensureLogin = ensureLogin;
   }
 
+  hasCache(boardname: string, sn: string | number): boolean {
+    return this.cache.has(`${boardname}/${sn}`);
+  }
+
   clearCache(boardname?: string, sn?: string) {
     if (boardname && sn) {
       this.cache.delete(`${boardname}/${sn}`);
@@ -167,6 +171,45 @@ export default class PttFileSystemProvider implements vscode.FileSystemProvider 
       }
       const message = err instanceof Error ? err.message : 'Failed to fetch article from PTT';
       throw vscode.FileSystemError.Unavailable(message);
+    }
+  }
+
+  async refreshArticle(boardname: string, sn: string | number, uri?: vscode.Uri): Promise<boolean> {
+    const key = `${boardname}/${sn}`;
+    const fileUri = uri || vscode.Uri.from({
+      scheme: PttFileSystemProvider.scheme,
+      path: `/${boardname}/${sn}.ptt`
+    });
+
+    if (this.ensureLogin) {
+      await this.ensureLogin();
+    }
+
+    if (!this.ptt || !this.ptt.state?.login) {
+      return false;
+    }
+
+    try {
+      const article = await this.ptt.getArticle(boardname, sn);
+      if (!article || !article.lines) {
+        return false;
+      }
+
+      const newContent = new TextEncoder().encode(article.lines.join('\n'));
+      const oldContent = this.cache.get(key);
+
+      const isDifferent = !oldContent ||
+        oldContent.length !== newContent.length ||
+        oldContent.some((byte, i) => byte !== newContent[i]);
+
+      this.cache.set(key, newContent);
+
+      if (isDifferent) {
+        this._emitter.fire([{ type: vscode.FileChangeType.Changed, uri: fileUri }]);
+      }
+      return isDifferent;
+    } catch {
+      return false;
     }
   }
 }

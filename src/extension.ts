@@ -8,6 +8,7 @@ import type { PttTreeDataProvider, Board } from './pttDataProvider';
 import { PttTreeViewController, getBoardNameFromItem } from './views/PttTreeView';
 import ContentProvider from './provider';
 import PttHoverProvider from './hoverProvider';
+import { LiveTracker } from './liveTracker';
 import store, { type ArticleListItem } from './store';
 import type { IPttClient, FavoriteBoardItem } from './types';
 import logger from './logger';
@@ -19,6 +20,7 @@ let ctx: vscode.ExtensionContext;
 let pttProvider: PttTreeDataProvider | PttTreeViewController;
 let pttViewController: PttTreeViewController;
 let contentProvider: ContentProvider;
+let liveTracker: LiveTracker;
 
 function intializePttClient (timeoutMs = 5000): Promise<IPttClient> {
   return new Promise(resolve => {
@@ -112,6 +114,7 @@ export function setPttClient (client: IPttClient) {
       updateLoginContext();
     });
     client.on('disconnect', () => {
+      liveTracker?.stopAll();
       updateLoginContext();
       refreshTreeView();
     });
@@ -133,6 +136,14 @@ export function setPttViewController (controller: PttTreeViewController) {
 
 export function setContentProvider (provider: ContentProvider) {
   contentProvider = provider;
+}
+
+export function setLiveTracker (tracker: LiveTracker) {
+  liveTracker = tracker;
+}
+
+export function getLiveTracker (): LiveTracker {
+  return liveTracker;
 }
 
 export function checkLogin () {
@@ -298,13 +309,13 @@ async function performLogin (isSilent: boolean): Promise<boolean> {
       vscode.window.showInformationMessage(`以 ${username} 登入成功！`);
     }
     return true;
-  } else {
-    updateLoginContext();
-    if (!isSilent) {
-      vscode.window.showWarningMessage('登入失敗 QQ');
-    }
-    return false;
   }
+
+  updateLoginContext();
+  if (!isSilent) {
+    vscode.window.showWarningMessage('登入失敗 QQ');
+  }
+  return false;
 }
 
 async function pickFavorite (): Promise<string | null> {
@@ -387,6 +398,7 @@ export async function activate(context: vscode.ExtensionContext) {
       ctx.globalState.update('password', null);
       ctx.globalState.update('boardlist', []);
       ctx.globalState.update('cachedFavorites', []);
+      liveTracker?.stopAll();
       store.clearAll();
       refreshTreeView();
 
@@ -581,8 +593,23 @@ export async function activate(context: vscode.ExtensionContext) {
     })
   );
 
+  liveTracker = new LiveTracker(contentProvider, checkLogin);
+  context.subscriptions.push(liveTracker);
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand('ptt.toggle-live-tracking', async (uri) => liveTracker.toggle(uri))
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand('ptt.start-live-tracking', async (uri) => liveTracker.startTracking(uri))
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand('ptt.stop-live-tracking', (uri) => liveTracker.stopTracking(uri))
+  );
+
   await login(true);
 }
 
 // this method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate() {
+  liveTracker?.dispose();
+}
